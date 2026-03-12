@@ -19,9 +19,9 @@ Used to drive spec and phase planning.
 | python-pptx | Category | figmatk API | Notes |
 |-------------|----------|-------------|-------|
 | `Presentation('file.pptx')` | ✅ Direct | `Deck.open('file.deck')` | Phase 1 — done |
-| `Presentation()` new blank | 🔬 Unknown | `Deck.create()` | Needs a blank deck template to clone from |
+| `Presentation()` new blank | ✅ Direct | `Deck.create()` | Done — creates from bundled blank template |
 | `prs.save('out.pptx')` | ✅ Direct | `deck.save('out.deck')` | Phase 1 — done |
-| `slide_width`, `slide_height` | 🔬 Unknown | `deck.slideWidth`, `deck.slideHeight` | Stored on CANVAS or SLIDE_GRID node; format unvalidated |
+| `slide_width`, `slide_height` | ✅ Direct | `deck.slideWidth`, `deck.slideHeight` | Read-only — validated from SLIDE node size |
 | Core metadata (title, author, etc.) | ✅ Direct | `deck.meta.file_name` | Only `file_name` + `version` in `meta.json`; no rich metadata |
 
 ---
@@ -34,7 +34,7 @@ Used to drive spec and phase planning.
 | `slides[0]` | ✅ Direct | `deck.slides[0]` | Phase 1 — done |
 | Remove slide | ✅ Direct | `deck.removeSlide(slide)` | Phase 4 — done |
 | Reorder slides | ✅ Direct | `deck.moveSlide(slide, index)` | Phase 4 — done |
-| `slide.background` fill | 🔬 Unknown | `slide.background.solid(r,g,b)` | SLIDE node has fill fields; format unvalidated |
+| `slide.background` fill | ✅ Direct | `slide.setBackground(color)` | Validated — named colors or RGB |
 | Notes slide | 🔬 Unknown | `slide.notes` | Unknown if Figma Slides has a notes equivalent |
 | `slide.slide_layout` | ⭐ Richer | `slide.symbol` | In Figma, the "layout" is a full SYMBOL with overrideable slots |
 
@@ -55,17 +55,17 @@ Used to drive spec and phase planning.
 
 | python-pptx | Category | figmatk API | Notes |
 |-------------|----------|-------------|-------|
-| `shape.left`, `top`, `width`, `height` | 🔬 Unknown | `shape.x`, `shape.y`, `shape.width`, `shape.height` | Phase 5 — fields exist on nodes, unvalidated write |
-| `shape.rotation` | 🔬 Unknown | `shape.rotation` | Phase 5 |
-| `shape.name` | ✅ Direct | `shape.name` | Already readable from node |
-| `shape.visible` | 🔬 Unknown | `shape.visible` | `visible` field on nodes; write unvalidated |
-| `shape.fill` | 🔬 Unknown | `shape.fill` | Phase 5 — solid first, then gradient |
-| `shape.line` (outline) | 🔬 Unknown | `shape.stroke` | Phase 5 |
-| `shapes.add_shape(type, ...)` | 🔬 Unknown | `slide.addShape(type, x, y, w, h)` | Phase 6 — RECTANGLE, ELLIPSE, POLYGON, etc. |
-| `shapes.add_textbox(...)` | 🔬 Unknown | `slide.addTextBox(x, y, w, h)` | Phase 6 — TEXT node |
-| `shapes.add_connector(...)` | 🔬 Unknown | `slide.addConnector(...)` | Phase 6 — LINE node |
-| `shapes.add_group_shape()` | 🔬 Unknown | `slide.addGroup()` | Phase 6 — GROUP node |
-| Freeform shape | 🔬 Unknown | `slide.addVector(...)` | Phase 6 — VECTOR node with blob geometry |
+| `shape.left`, `top`, `width`, `height` | ✅ Direct | `shape.x`, `shape.y`, `shape.width`, `shape.height` | Validated — read/write via transform + size |
+| `shape.rotation` | ✅ Direct | `shape.rotation` | Validated — read/write via transform matrix |
+| `shape.name` | ✅ Direct | `shape.name` | Validated — read/write |
+| `shape.visible` | ✅ Direct | `shape.visible` | Validated |
+| `shape.fill` | ✅ Direct | `shape.setFill(color)` | Validated — solid RGB, routes to nodeGenerationData for SHAPE_WITH_TEXT |
+| `shape.line` (outline) | ✅ Direct | `shape.setStroke(color, opts)` | Validated — color, weight, align |
+| `shapes.add_shape(type, ...)` | ✅ Direct | `slide.addRectangle/Ellipse/Diamond/Triangle/Star(...)` | Validated — ROUNDED_RECTANGLE + SHAPE_WITH_TEXT variants |
+| `shapes.add_textbox(...)` | ✅ Direct | `slide.addText(text, opts)` | Validated — TEXT node with styles |
+| `shapes.add_connector(...)` | ✅ Direct | `slide.addLine(x1, y1, x2, y2)` | Validated — LINE node |
+| `shapes.add_group_shape()` | 🔬 Unknown | `slide.addGroup()` | GROUP node — unvalidated |
+| Freeform shape | 🔬 Unknown | `slide.addVector(...)` | VECTOR node with blob geometry — unvalidated |
 | OLE objects | ❌ Skip | — | No Figma equivalent |
 
 ---
@@ -78,7 +78,7 @@ Used to drive spec and phase planning.
 | Body placeholder | ⭐ Richer | `slide.setText('Body', value)` | Phase 2 done |
 | Picture placeholder | ⭐ Richer | `slide.setImage('Photo', path)` | Phase 3 done |
 | `placeholder.insert_picture(path)` | ✅ Direct | `slide.setImage(name, path)` | Phase 3 done |
-| Table placeholder | 🔬 Unknown | `slide.setTable(name, data)` | Unknown if Figma Slides has table nodes |
+| Table placeholder | 🔬 Unknown | `slide.setTable(name, data)` | TABLE nodes exist but no placeholder equivalent yet |
 | Chart placeholder | ❌ Skip | — | Figma Slides has no native chart nodes |
 
 ---
@@ -90,16 +90,16 @@ Used to drive spec and phase planning.
 | `text_frame.text` read | ✅ Direct | `textNode.characters` | Phase 1 — done |
 | Set text content | ✅ Direct | `slide.setText(name, value)` | Phase 2 — done |
 | Batch set text | ✅ Direct | `slide.setTexts({name: value})` | Phase 2 — done |
-| `paragraph.alignment` | 🔬 Unknown | `para.alignment` | Text style fields on TEXT node; write unvalidated |
-| `paragraph.level` (bullets) | 🔬 Unknown | `para.level` | Unknown if Figma Slides uses indent levels |
+| `paragraph.alignment` | ✅ Direct | `addText(..., { align: 'CENTER' })` | Validated — LEFT, CENTER, RIGHT, JUSTIFIED |
+| `paragraph.level` (bullets) | ✅ Direct | `addText(..., { list: 'bullet' })` | Validated — bullet + numbered, with indent levels |
 | `paragraph.line_spacing` | 🔬 Unknown | `para.lineSpacing` | On TEXT node style; unvalidated |
 | `paragraph.space_before/after` | 🔬 Unknown | `para.spaceBefore`, `para.spaceAfter` | Unvalidated |
-| `run.font.name` | 🔬 Unknown | `run.font.name` | Font fields exist on TEXT node; write unvalidated |
-| `run.font.size` | 🔬 Unknown | `run.font.size` | Unvalidated |
-| `run.font.bold/italic` | 🔬 Unknown | `run.font.bold`, `.italic` | Unvalidated |
-| `run.font.color` | 🔬 Unknown | `run.font.color` | Unvalidated |
-| `run.font.underline` | 🔬 Unknown | `run.font.underline` | Unvalidated |
-| `run.hyperlink.address` | 🔬 Unknown | `run.hyperlink` | Figma has link nodes; format unvalidated |
+| `run.font.name` | ✅ Direct | `addText(..., { font: 'Georgia' })` | Validated — custom font detaches from style |
+| `run.font.size` | ✅ Direct | `addText(..., { fontSize: 48 })` | Validated |
+| `run.font.bold/italic` | ✅ Direct | `[{ text: 'bold', bold: true }]` | Validated — per-run via styleOverrideTable |
+| `run.font.color` | ✅ Direct | `addText(..., { color: { r,g,b } })` | Validated — whole-text and per-run |
+| `run.font.underline` | ✅ Direct | `[{ text: 'u', underline: true }]` | Validated — per-run textDecoration |
+| `run.hyperlink.address` | ✅ Direct | `[{ text: 'link', hyperlink: 'url' }]` | Validated — per-run hyperlink |
 | `text_frame.vertical_anchor` | 🔬 Unknown | `textFrame.verticalAlign` | Unvalidated |
 | `text_frame.word_wrap` | 🔬 Unknown | `textFrame.wordWrap` | Unvalidated |
 | `text_frame.auto_size` | ⭐ Richer | `textFrame.autoSize` | Figma has auto-layout which is more powerful |
@@ -111,12 +111,12 @@ Used to drive spec and phase planning.
 
 | python-pptx | Category | figmatk API | Notes |
 |-------------|----------|-------------|-------|
-| Solid fill | 🔬 Unknown | `shape.fill.solid(r,g,b)` | Phase 5 — `fillPaints` array on nodes |
-| Gradient fill | 🔬 Unknown | `shape.fill.gradient(stops)` | Phase 5 |
+| Solid fill | ✅ Direct | `shape.setFill({ r, g, b })` | Validated — fillPaints on nodes |
+| Gradient fill | 🔬 Unknown | `shape.fill.gradient(stops)` | Unvalidated |
 | Pattern fill | ❌ Skip | — | No pattern fill concept in Figma |
-| Picture fill | ✅ Direct | `shape.fill.image(path)` | Similar to image override; Phase 5 |
-| No fill / transparent | 🔬 Unknown | `shape.fill.none()` | Set `visible: false` on fillPaints or empty array |
-| Opacity | 🔬 Unknown | `shape.opacity` | `opacity` field on nodes; unvalidated write |
+| Picture fill | ✅ Direct | `shape.setImageFill(path)` | Validated — works on ROUNDED_RECTANGLE + SHAPE_WITH_TEXT |
+| No fill / transparent | ✅ Direct | `shape.removeFill()` | Validated — empties fillPaints |
+| Opacity | ✅ Direct | `shape.opacity = 0.5` | Validated |
 
 ---
 
@@ -124,10 +124,10 @@ Used to drive spec and phase planning.
 
 | python-pptx | Category | figmatk API | Notes |
 |-------------|----------|-------------|-------|
-| Line color | 🔬 Unknown | `shape.stroke.color` | `strokePaints` array on nodes; unvalidated |
-| Line width | 🔬 Unknown | `shape.stroke.weight` | `strokeWeight` field; unvalidated |
+| Line color | ✅ Direct | `shape.setStroke({ r, g, b })` | Validated — strokePaints on nodes |
+| Line width | ✅ Direct | `shape.setStroke(color, { weight: 8 })` | Validated |
 | Dash style | 🔬 Unknown | `shape.stroke.dash` | Unknown if Figma stores dash style in this format |
-| No stroke | 🔬 Unknown | `shape.stroke.none()` | Unvalidated |
+| No stroke | ✅ Direct | `shape.removeStroke()` | Validated |
 
 ---
 
@@ -143,11 +143,11 @@ Used to drive spec and phase planning.
 
 | python-pptx | Category | figmatk API | Notes |
 |-------------|----------|-------------|-------|
-| `add_table(rows, cols, ...)` | 🔬 Unknown | `slide.addTable(...)` | Unknown if Figma Slides supports TABLE nodes |
-| Cell text | 🔬 Unknown | `table.cell(r,c).text` | Unvalidated |
-| Cell fill | 🔬 Unknown | `table.cell(r,c).fill` | Unvalidated |
+| `add_table(rows, cols, ...)` | ✅ Direct | `slide.addTable(x, y, data, opts)` | Validated — TABLE node with nodeGenerationData overrides |
+| Cell text | ✅ Direct | via `data[][]` in addTable | Validated — per-cell text at guidPath 40000000:1 > row > col |
+| Cell fill | 🔬 Unknown | per-cell fill override | Format known (40000000:0 > row > col) but API not yet exposed |
 | Merge cells | 🔬 Unknown | `cell.merge(other)` | Unknown if Figma has cell merge concept |
-| Row/col sizing | 🔬 Unknown | `row.height`, `col.width` | Unvalidated |
+| Row/col sizing | ✅ Direct | `opts.colWidth`, `opts.rowHeight` | Validated — tableColumnWidths / tableRowHeights |
 
 ---
 
@@ -155,7 +155,7 @@ Used to drive spec and phase planning.
 
 | python-pptx | Category | figmatk API | Notes |
 |-------------|----------|-------------|-------|
-| `add_picture(path, l, t, w, h)` | 🔬 Unknown | `slide.addImage(x, y, w, h, path)` | Phase 6 — freestanding image node |
+| `add_picture(path, l, t, w, h)` | ✅ Direct | `slide.addImage(x, y, w, h, path)` | Validated — freestanding ROUNDED_RECTANGLE with IMAGE fill |
 | `insert_picture` into placeholder | ✅ Direct | `slide.setImage(name, path)` | Phase 3 — done |
 | Auto aspect-ratio preserve | ✅ Direct | handled in `setImage` | Phase 3 — done |
 | SHA-1 hash + thumbnail | ✅ Direct | handled internally | Phase 3 — done |
@@ -181,11 +181,11 @@ These have no python-pptx counterpart but are natural targets for figmatk.
 
 | Category | Count |
 |----------|-------|
-| ✅ Direct — done or straightforward | ~15 |
+| ✅ Direct — done and validated | ~38 |
 | ⭐ Richer — Figma exceeds pptx | ~6 |
-| 🔬 Unknown — needs format validation | ~35 |
+| 🔬 Unknown — needs format validation | ~12 |
 | ❌ Skip | ~5 |
 
-The bulk of the work is in the 🔬 Unknown category — the features are all present
-in the Figma node graph, but each needs an isolated write test before it can be
-considered implemented.
+Most python-pptx features now have validated figmatk equivalents. The remaining
+🔬 items are mostly advanced formatting (gradients, dash styles, paragraph spacing,
+cell merge, groups, freeform shapes).

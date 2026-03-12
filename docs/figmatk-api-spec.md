@@ -179,7 +179,7 @@ in Figma.
 
 ---
 
-## Phase 2 — Unknown Territory (Research & Validate) 🔬 In Progress
+## Phase 2 — Unknown Territory (Research & Validate) ✅ Complete
 
 **Goal:** Investigate the 🔬 Unknown features from the feature map.
 Each item is a mini research task: write a test, confirm in Figma, then ship.
@@ -321,15 +321,14 @@ Image backgrounds not yet investigated.
 
 ---
 
-### 2.7 — Slide dimensions 🔬
+### 2.7 — Slide dimensions ✅ Validated
 
 ```js
-deck.slideWidth    // read
-deck.slideHeight   // read
+deck.slideWidth    // read — 1920
+deck.slideHeight   // read — 1080
 ```
 
-**Investigate:** Where are slide dimensions stored? Likely on CANVAS or
-SLIDE_GRID node. Start read-only — write is risky.
+Read-only. Derived from the first SLIDE node's `size` field.
 
 ---
 
@@ -378,13 +377,37 @@ SHAPE_WITH_TEXT (nodeGenerationData.overrides[0].fillPaints).
 
 ---
 
-### 2.10 — Hyperlinks on text runs 🔬
+### 2.10 — Hyperlinks on text runs ✅ Validated
 
 ```js
-run.hyperlink = 'https://example.com'
+slide.addText([
+  { text: 'Click ', },
+  { text: 'here', hyperlink: 'https://example.com' },
+], { style: 'Body 1' })
 ```
 
-**Investigate:** Figma has link nodes; format for text run hyperlinks unknown.
+Per-run `hyperlink` field on style override entry.
+
+---
+
+### 2.11 — Tables ✅ Validated
+
+```js
+slide.addTable(x, y, [
+  ['Name', 'Role', 'Status'],
+  ['Alice', 'Engineer', 'Active'],
+  ['Bob', 'Designer', 'On Leave'],
+], { name: 'Team', colWidth: 192, rowHeight: 44, cornerRadius: 12 })
+```
+
+TABLE node with no children. Cell data stored in `nodeGenerationData.overrides`:
+- `40000000:0 > rowID > colID` — per-cell background fill (optional)
+- `40000000:1 > rowID > colID` — per-cell text content
+- `40000000:2` — default cell style (fill, stroke, font settings)
+- `40000000:3` — default text style
+
+Row/column structure via `tableRowPositions`, `tableColumnPositions`,
+`tableRowHeights`, `tableColumnWidths` on the TABLE node.
 
 ---
 
@@ -416,7 +439,7 @@ From the feature map — these have no Figma Slides equivalent:
 | Charts | No native chart nodes in Figma Slides |
 | OLE objects | No embedded document concept |
 | SmartArt | No equivalent |
-| Table placeholder | Unknown if Figma Slides supports tables at all — investigate in Phase 2 if needed |
+| Table placeholder | Tables exist as TABLE nodes; no placeholder equivalent — use `addTable()` directly |
 | Notes slide | Unknown if equivalent exists |
 
 ---
@@ -458,7 +481,12 @@ slide.addText('Hello', { style: 'Title', color: { r: 1, g: 1, b: 1 } })  // ✅
 slide.addText('Custom', { font: 'Georgia', fontSize: 48 })                // ✅
 slide.addRectangle(x, y, w, h, { fill: { r: 1, g: 0, b: 0 } })          // ✅
 slide.addFrame(x, y, w, h, { direction: 'VERTICAL', spacing: 24 })       // ✅
-slide.addEllipse(x, y, w, h)                              // ❓ not yet
+slide.addEllipse(x, y, w, h)                              // ✅
+slide.addDiamond(x, y, w, h)                              // ✅
+slide.addTriangle(x, y, w, h)                             // ✅
+slide.addStar(x, y, w, h)                                 // ✅
+slide.addLine(x1, y1, x2, y2)                             // ✅
+slide.addTable(x, y, data, { colWidth, rowHeight })        // ✅
 await slide.addImage(x, y, w, h, 'photo.jpg')              // ✅
 
 // Slide management
