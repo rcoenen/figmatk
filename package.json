@@ -6,9 +6,34 @@
   "bin": {
     "figmatk": "./cli.mjs"
   },
+  "exports": {
+    "./deck": "./lib/fig-deck.mjs",
+    "./node-helpers": "./lib/node-helpers.mjs",
+    "./image-helpers": "./lib/image-helpers.mjs",
+    "./deep-clone": "./lib/deep-clone.mjs"
+  },
+  "files": [
+    "cli.mjs",
+    "lib/",
+    "commands/",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "start": "node cli.mjs"
   },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rcoenen/figmatk.git"
+  },
+  "homepage": "https://github.com/rcoenen/figmatk",
+  "bugs": {
+    "url": "https://github.com/rcoenen/figmatk/issues"
+  },
+  "author": "rcoenen",
   "dependencies": {
     "archiver": "^7.0.1",
     "fzstd": "^0.1.1",
@@ -16,6 +41,6 @@
     "pako": "^2.1.0",
     "zstd-codec": "^0.1.5"
   },
-  "keywords": ["figma", "deck", "fig", "slides", "kiwi", "binary"],
+  "keywords": ["figma", "deck", "fig", "slides", "presentation", "kiwi", "binary", "cli"],
   "license": "MIT"
 }
