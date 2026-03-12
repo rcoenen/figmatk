@@ -1,4 +1,4 @@
-# FigmaTK — The Figma ToolKit (v0.0.5)
+# FigmaTK — Figma Toolkit (v0.0.6)
 
 Swiss-army knife CLI for Figma `.deck` and `.fig` files. Parse, inspect, modify, and rebuild Figma Slides decks programmatically — no Figma API required.
 
@@ -36,7 +36,7 @@ Plug in [Claude Code](https://claude.ai/code), [Codex](https://openai.com/index/
 ## Install
 
 ```bash
-npm install -g figmatoolkit
+npm install -g figmatk
 ```
 
 No build step. Pure ESM (`.mjs`). Node 18+.
@@ -209,10 +209,10 @@ In Claude Desktop → Settings → Developer → Edit Config:
 ## Using as a Library
 
 ```javascript
-import { FigDeck } from 'figmatoolkit/deck';
-import { ov, nestedOv, removeNode } from 'figmatoolkit/node-helpers';
-import { imageOv } from 'figmatoolkit/image-helpers';
-import { deepClone } from 'figmatoolkit/deep-clone';
+import { FigDeck } from 'figmatk/deck';
+import { ov, nestedOv, removeNode } from 'figmatk/node-helpers';
+import { imageOv } from 'figmatk/image-helpers';
+import { deepClone } from 'figmatk/deep-clone';
 
 // Load
 const deck = await FigDeck.fromDeckFile('template.deck');
