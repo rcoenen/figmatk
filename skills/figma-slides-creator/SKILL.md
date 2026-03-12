@@ -6,7 +6,7 @@ description: >
   clone or remove slides, or produce a .deck file for Figma Slides.
   Powered by FigmaTK under the hood.
 metadata:
-  version: "0.0.18"
+  version: "0.0.19"
 ---
 
 # Figma Slides Creator
@@ -100,6 +100,7 @@ If this fails, check the error and fix the script — **do not change the worksp
 | Shape fill color | `{ fill: '#F4900C' }` | `{ fill: hex('#F4900C') }` — use the hex() helper |
 | `addLine` options | `{ strokeColor: ..., strokeWeight: 2 }` | `{ color: 'Black', weight: 2 }` |
 | `align` value | `align: 'left'` | `align: 'LEFT'` (uppercase) |
+| `addImage` without await | `slide.addImage(...)` | `await slide.addImage(...)` — async, images silently missing without await |
 
 ### Hex color helper (for shape fills)
 
@@ -151,7 +152,7 @@ slide.addDiamond(x, y, width, height, opts)
 slide.addTriangle(x, y, width, height, opts)
 slide.addStar(x, y, width, height, opts)
 slide.addLine(x1, y1, x2, y2, opts)             // opts: color, weight
-slide.addImage(x, y, width, height, pathOrBuf, opts) // opts: cornerRadius, opacity
+await slide.addImage(x, y, width, height, pathOrBuf, opts) // ⚠️ ASYNC — must use await, opts: cornerRadius, opacity
 slide.addTable(data, opts)                        // 2D string array; opts: x, y, width, colWidths, rowHeight
 slide.addSVG(x, y, width, svgPathOrBuf, opts)
 ```
