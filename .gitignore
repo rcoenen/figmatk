@@ -3,4 +3,3 @@ node_modules/
 *.fig
 /tmp/
 .DS_Store
-.claude/
