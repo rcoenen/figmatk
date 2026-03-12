@@ -365,15 +365,16 @@ slide.addRectangle(x, y, w, h, { fill: { r: 0.5, g: 0, b: 0 } })
 
 ---
 
-### 2.9 — Picture fill on shapes 🔬
+### 2.9 — Picture fill on shapes ✅ Validated
 
 ```js
-shape.fill.image('texture.jpg')
+const shape = slide.shapes.find(s => s.name === 'MyRect');
+await shape.setImageFill('texture.jpg');
+await shape.setImageFill(buffer, { scaleMode: 'FIT' });
 ```
 
-**Investigate:** Different from image placeholder override — this is a
-`fillPaints` entry with `type: 'IMAGE'` directly on the shape node,
-not via `symbolOverrides`.
+Works on both ROUNDED_RECTANGLE (top-level fillPaints) and
+SHAPE_WITH_TEXT (nodeGenerationData.overrides[0].fillPaints).
 
 ---
 
