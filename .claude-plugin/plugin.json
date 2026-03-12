@@ -1,11 +1,16 @@
 {
   "name": "figmatk",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Create and edit Figma Slides .deck files programmatically — no Figma API required",
   "author": {
     "name": "FigmaTK Contributors"
   },
   "repository": "https://github.com/rcoenen/figmatk",
   "license": "MIT",
-  "keywords": ["figma", "deck", "slides", "presentation"]
+  "keywords": [
+    "figma",
+    "deck",
+    "slides",
+    "presentation"
+  ]
 }
