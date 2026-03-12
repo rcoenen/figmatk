@@ -6,7 +6,7 @@ description: >
   clone or remove slides, or produce a .deck file for Figma Slides.
   Powered by FigmaTK under the hood.
 metadata:
-  version: "0.2.3"
+  version: "0.2.4"
 ---
 
 # Figma Slides Creator
