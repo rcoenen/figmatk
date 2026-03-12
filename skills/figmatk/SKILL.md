@@ -51,11 +51,17 @@ await deck.save('/path/to/output.deck');
 | `Body 3` | 24pt | Regular | Captions, labels |
 | `Note` | 20pt | Regular | Footnotes, sources |
 
-### Named colors (Light Slides theme)
+### Colors
 
-`white`, `black`, `slate`, `light-gray`, `dark-gray`, `blue`, `light-blue`, `green`, `light-green`, `yellow`, `orange`, `red`, `pink`, `purple`
+Use **names** — never RGB values. The API accepts:
 
-Pass a hex string (`'#E63946'`) for custom colours.
+| Type | Example |
+|------|---------|
+| Designer name | `'teal'`, `'coral'`, `'navy'`, `'midnight'`, `'forest'`, `'charcoal'`, `'cream'`, `'gold'`, `'terracotta'`, `'sage'`, `'cobalt'`, `'rose'`, `'indigo'`, `'burgundy'`, `'sand'`... |
+| Hex string | `'#E63946'` |
+| Light Slides theme | `'Blue'`, `'Red'`, `'Green'`, `'Yellow'`, `'Orange'`, `'Pink'`, `'Purple'`, `'Slate'`, `'White'`, `'Black'` |
+
+Pick colors by feeling: "warm terracotta on cream", "midnight blue with coral accent". Let the design drive the choice, then pick the closest name.
 
 ### Slide dimensions
 
@@ -124,12 +130,12 @@ Every deck must look **intentionally designed**, not AI-generated. Follow these 
 
 | Theme | Background | Accent | Text |
 |-------|-----------|--------|------|
-| Midnight | `#1E2761` | `#CADCFC` | `white` |
-| Forest | `#2C5F2D` | `#97BC62` | `white` |
-| Coral | `#F96167` | `#2F3C7E` | `white` |
-| Terracotta | `#B85042` | `#E7E8D1` | `white` |
-| Ocean | `#065A82` | `#21295C` | `white` |
-| Minimal | `#F2F2F2` | `#36454F` | `#212121` |
+| Midnight | `navy` | `sky` | `white` |
+| Forest | `forest` | `sage` | `white` |
+| Coral | `coral` | `indigo` | `white` |
+| Terracotta | `terracotta` | `sand` | `white` |
+| Ocean | `cobalt` | `midnight` | `white` |
+| Minimal | `smoke` | `charcoal` | `black` |
 
 ### Layout
 
