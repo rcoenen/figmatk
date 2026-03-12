@@ -411,6 +411,31 @@ Row/column structure via `tableRowPositions`, `tableColumnPositions`,
 
 ---
 
+### 2.12 — SVG Import ✅ Validated
+
+```js
+slide.addSVG(x, y, width, '/path/to/graphic.svg', {
+  fill: { r: 0.6, g: 0.9, b: 0.6 },
+  name: 'Logo',
+})
+```
+
+Imports SVG `<path>` elements as a FRAME + VECTOR node pair. Supports
+M, L, H, V, C, S, Z commands (absolute and relative). The SVG path data
+is encoded into two blob types:
+
+- **fillGeometry commandsBlob** — path commands scaled to node size.
+  Format: `01`=moveTo(x,y) `02`=lineTo(x,y) `04`=cubicTo(6 floats) `00`=close.
+- **vectorNetworkBlob** — editable vector network in SVG coordinate space.
+  Format: header(4×u32: vtxCount, segCount, regionCount, styleCount),
+  vertices(x·f32, y·f32, mirror·u32), segments(28B: start·u32, tsx·f32, tsy·f32,
+  end·u32, tex·f32, tey·f32, type·u32), regions(numLoops, {segCount, indices[]},
+  windingRule per region).
+
+Height is calculated proportionally from the SVG viewBox aspect ratio.
+
+---
+
 ## Phase 3 — Richer Than pptx ⭐ Future
 
 **Goal:** Features where Figma exceeds python-pptx. No pptx analogue —
@@ -487,6 +512,7 @@ slide.addTriangle(x, y, w, h)                             // ✅
 slide.addStar(x, y, w, h)                                 // ✅
 slide.addLine(x1, y1, x2, y2)                             // ✅
 slide.addTable(x, y, data, { colWidth, rowHeight })        // ✅
+slide.addSVG(x, y, w, 'graphic.svg', { fill })             // ✅
 await slide.addImage(x, y, w, h, 'photo.jpg')              // ✅
 
 // Slide management

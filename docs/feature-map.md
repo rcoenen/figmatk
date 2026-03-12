@@ -65,6 +65,7 @@ Used to drive spec and phase planning.
 | `shapes.add_textbox(...)` | ✅ Direct | `slide.addText(text, opts)` | Validated — TEXT node with styles |
 | `shapes.add_connector(...)` | ✅ Direct | `slide.addLine(x1, y1, x2, y2)` | Validated — LINE node |
 | `shapes.add_group_shape()` | 🔬 Unknown | `slide.addGroup()` | GROUP node — unvalidated |
+| SVG import | ✅ Direct | `slide.addSVG(x, y, w, path, opts)` | Validated — FRAME+VECTOR with fillGeometry + vectorNetworkBlob |
 | Freeform shape | 🔬 Unknown | `slide.addVector(...)` | VECTOR node with blob geometry — unvalidated |
 | OLE objects | ❌ Skip | — | No Figma equivalent |
 
