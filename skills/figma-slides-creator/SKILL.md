@@ -6,7 +6,7 @@ description: >
   clone or remove slides, or produce a .deck file for Figma Slides.
   Powered by FigmaTK under the hood.
 metadata:
-  version: "0.0.11"
+  version: "0.0.12"
 ---
 
 # FigmaTK Skill
@@ -34,10 +34,21 @@ To let the user view the result: tell them to **open the file in Figma Desktop**
 
 Use this when the user wants a new presentation. Write a Node.js script and execute it.
 
-> **Import path:** `figmatk` is an npm package. Import from the installed package:
-> ```javascript
-> import { Deck } from 'figmatk';
-> ```
+### Setup (required before running any script)
+
+The plugin cache does not include `node_modules`. Always install figmatk into a local workspace first:
+
+```bash
+mkdir -p /tmp/figmatk-ws && cd /tmp/figmatk-ws && npm init -y && npm install figmatk
+```
+
+Then write your script inside `/tmp/figmatk-ws/` and run it from there:
+
+```bash
+node /tmp/figmatk-ws/my-deck.mjs
+```
+
+> **Import:** always use the bare specifier `import { Deck } from 'figmatk'` — Node will resolve it from the local `node_modules` in the workspace.
 
 ```javascript
 import { Deck } from 'figmatk';
