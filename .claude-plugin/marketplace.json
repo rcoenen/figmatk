@@ -1,0 +1,11 @@
+{
+  "name": "figmatk",
+  "description": "FigmaTK — Inspect and modify Figma Slides .deck files",
+  "plugins": [
+    {
+      "name": "figmatk",
+      "source": ".",
+      "description": "Inspect and modify Figma Slides .deck files natively"
+    }
+  ]
+}

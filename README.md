@@ -1,4 +1,4 @@
-# FigmaTK — The Figma ToolKit (v0.0.1)
+# FigmaTK — The Figma ToolKit (v0.0.5)
 
 Swiss-army knife CLI for Figma `.deck` and `.fig` files. Parse, inspect, modify, and rebuild Figma Slides decks programmatically — no Figma API required.
 
@@ -15,7 +15,7 @@ Each Figma product has its own native file format:
 | Figma Sites | `.site` |
 | Figma Make | `.make` |
 
-The `.deck` format borrows heavily from `.fig` — a `.deck` is essentially a ZIP containing a `.fig`-encoded canvas plus metadata and images. FigmaTK v0.0.1 focuses on `.deck` files. We'll evaluate expanding to other formats as we go.
+The `.deck` format borrows heavily from `.fig` — a `.deck` is essentially a ZIP containing a `.fig`-encoded canvas plus metadata and images. FigmaTK focuses on `.deck` files. We'll evaluate expanding to other formats as we go.
 
 ## Why native `.deck`?
 
@@ -36,9 +36,7 @@ Plug in [Claude Code](https://claude.ai/code), [Codex](https://openai.com/index/
 ## Install
 
 ```bash
-git clone https://github.com/rcoenen/figmatk.git
-cd figmatk
-npm install
+npm install -g figmatoolkit
 ```
 
 No build step. Pure ESM (`.mjs`). Node 18+.
@@ -47,13 +45,13 @@ No build step. Pure ESM (`.mjs`). Node 18+.
 
 ```bash
 # See what's inside a deck
-node cli.mjs inspect my-presentation.deck
+figmatk inspect my-presentation.deck
 
 # List every text field and image in every slide
-node cli.mjs list-text my-presentation.deck
+figmatk list-text my-presentation.deck
 
 # Discover all override keys (what you can edit)
-node cli.mjs list-overrides my-presentation.deck
+figmatk list-overrides my-presentation.deck
 ```
 
 ## Commands
@@ -61,7 +59,7 @@ node cli.mjs list-overrides my-presentation.deck
 ### `inspect` — Document structure
 
 ```bash
-node cli.mjs inspect file.deck [--depth N] [--type TYPE] [--json]
+figmatk inspect file.deck [--depth N] [--type TYPE] [--json]
 ```
 
 Prints the full node hierarchy tree:
@@ -84,7 +82,7 @@ Filter by node type (`--type SLIDE`, `--type INSTANCE`, `--type SYMBOL`) or limi
 ### `list-text` — All content
 
 ```bash
-node cli.mjs list-text file.deck
+figmatk list-text file.deck
 ```
 
 Shows every text string and image hash in the deck — both direct node text and symbol override text. Useful for auditing content or extracting copy.
@@ -99,7 +97,7 @@ SLIDE "1" → INSTANCE (1:2001) sym=1:1322
 ### `list-overrides` — Editable fields
 
 ```bash
-node cli.mjs list-overrides file.deck [--symbol "Symbol Name"]
+figmatk list-overrides file.deck [--symbol "Symbol Name"]
 ```
 
 For every symbol (component) in the file, lists each node that has an `overrideKey` — these are the fields you can modify via `symbolOverrides`. Shows the key ID, node type, name, and current default value.
@@ -115,7 +113,7 @@ SYMBOL "Image+Text" (1:1205)
 ### `update-text` — Change text
 
 ```bash
-node cli.mjs update-text input.deck -o output.deck \
+figmatk update-text input.deck -o output.deck \
   --slide 1:2000 \
   --set "57:48=New Title" \
   --set "57:49=New Subtitle"
@@ -126,7 +124,7 @@ Finds the slide (by node ID or name), locates its instance, and adds or updates 
 ### `insert-image` — Place images
 
 ```bash
-node cli.mjs insert-image input.deck -o output.deck \
+figmatk insert-image input.deck -o output.deck \
   --slide 1:2006 \
   --key 75:126 \
   --image screenshot.png \
@@ -142,7 +140,7 @@ Overrides an image placeholder on a slide instance. Automatically:
 ### `clone-slide` — Duplicate with content
 
 ```bash
-node cli.mjs clone-slide input.deck -o output.deck \
+figmatk clone-slide input.deck -o output.deck \
   --template 1:1559 \
   --name "New Slide" \
   --set "57:48=Title" \
@@ -155,7 +153,7 @@ Deep-clones a slide + instance pair from a template, assigns fresh GUIDs, applie
 ### `remove-slide` — Delete slides
 
 ```bash
-node cli.mjs remove-slide input.deck -o output.deck \
+figmatk remove-slide input.deck -o output.deck \
   --slide 1:1769 \
   --slide 1:1732
 ```
@@ -165,18 +163,56 @@ Marks slides and their child instances as `REMOVED`. Repeat `--slide` for multip
 ### `roundtrip` — Validate the pipeline
 
 ```bash
-node cli.mjs roundtrip input.deck -o output.deck
+figmatk roundtrip input.deck -o output.deck
 ```
 
 Decodes and re-encodes with zero changes. If Figma opens the output, your pipeline is sound. Prints node/slide/blob counts.
 
+## Claude Cowork / Claude Code Integration
+
+FigmaTK ships as a **Cowork plugin** with an MCP server. This lets Claude manipulate `.deck` files directly as tool calls.
+
+### Install as Cowork plugin
+
+```bash
+claude plugin marketplace add rcoenen/figmatk
+claude plugin install figmatk@figmatk
+```
+
+### Or add as MCP server manually
+
+In Claude Desktop → Settings → Developer → Edit Config:
+
+```json
+{
+  "mcpServers": {
+    "figmatk": {
+      "command": "figmatk-mcp"
+    }
+  }
+}
+```
+
+### Available MCP tools
+
+| Tool | Description |
+|------|-------------|
+| `figmatk_inspect` | Show node hierarchy tree |
+| `figmatk_list_text` | List all text and image content per slide |
+| `figmatk_list_overrides` | List editable override keys per symbol |
+| `figmatk_update_text` | Apply text overrides to a slide instance |
+| `figmatk_insert_image` | Apply image fill override |
+| `figmatk_clone_slide` | Duplicate a slide |
+| `figmatk_remove_slide` | Mark a slide as REMOVED |
+| `figmatk_roundtrip` | Decode and re-encode for validation |
+
 ## Using as a Library
 
 ```javascript
-import { FigDeck } from './lib/fig-deck.mjs';
-import { ov, nestedOv, removeNode } from './lib/node-helpers.mjs';
-import { imageOv } from './lib/image-helpers.mjs';
-import { deepClone } from './lib/deep-clone.mjs';
+import { FigDeck } from 'figmatoolkit/deck';
+import { ov, nestedOv, removeNode } from 'figmatoolkit/node-helpers';
+import { imageOv } from 'figmatoolkit/image-helpers';
+import { deepClone } from 'figmatoolkit/deep-clone';
 
 // Load
 const deck = await FigDeck.fromDeckFile('template.deck');
@@ -242,6 +278,7 @@ See **[docs/deck-format.md](docs/deck-format.md)** for the full binary format sp
 ```
 figmatk/
   cli.mjs                    # CLI entry point — arg parsing + subcommand dispatch
+  mcp-server.mjs             # MCP server for Claude Cowork / Claude Code
   lib/
     fig-deck.mjs             # FigDeck class — own binary parser, no third-party deps
     deep-clone.mjs           # Uint8Array-safe recursive deep clone
@@ -256,9 +293,15 @@ figmatk/
     clone-slide.mjs          # Duplicate a slide with content
     remove-slide.mjs         # Mark slides REMOVED
     roundtrip.mjs            # Decode/re-encode validation
+  skills/
+    figmatk/SKILL.md         # Cowork skill definition
+  .claude-plugin/
+    plugin.json              # Cowork plugin manifest
+    marketplace.json         # Plugin marketplace listing
+  .mcp.json                  # MCP server config
 ```
 
-No framework dependencies for CLI parsing. Five npm packages total: `kiwi-schema`, `fzstd`, `zstd-codec`, `pako`, `archiver`.
+Six npm packages: `kiwi-schema`, `fzstd`, `zstd-codec`, `pako`, `archiver`, `@modelcontextprotocol/sdk`.
 
 ## License
 
