@@ -1,5 +1,5 @@
 {
-  "name": "figmatoolkit",
+  "name": "figmatk",
   "version": "0.0.5",
   "description": "FigmaToolKit — Swiss-army knife CLI for Figma .deck and .fig files",
   "type": "module",
@@ -8,6 +8,7 @@
     "figmatk-mcp": "mcp-server.mjs"
   },
   "exports": {
+    ".": "./lib/api.mjs",
     "./deck": "./lib/fig-deck.mjs",
     "./node-helpers": "./lib/node-helpers.mjs",
     "./image-helpers": "./lib/image-helpers.mjs",
