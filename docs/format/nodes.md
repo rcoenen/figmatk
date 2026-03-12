@@ -41,8 +41,9 @@ Known node types:
 | `ROUNDED_RECTANGLE` | Basic rectangle — see [shapes.md](shapes.md) |
 | `SHAPE_WITH_TEXT` | Shape from "shape" tool — see [shapes.md](shapes.md) |
 | `ELLIPSE` | Ellipse shape |
-| `VECTOR` | Vector path |
-| `LINE` | Line |
+| `TABLE` | Table node — see [shapes.md](shapes.md) |
+| `VECTOR` | Vector path — see [shapes.md](shapes.md) |
+| `LINE` | Line — see [shapes.md](shapes.md) |
 | `GROUP` | Group container |
 | `FRAME` | Frame / auto-layout container — see [shapes.md](shapes.md) |
 | `BOOLEAN_GROUP` | Boolean operation group |

@@ -102,6 +102,77 @@ the node.
 
 ---
 
+## Per-Run Formatting ✅
+
+Multiple styles within a single text node are achieved via `styleOverrideTable`
+and `characterStyleIDs` arrays in `textData`.
+
+```javascript
+{
+  textData: {
+    characters: 'Normal bold italic',
+    styleOverrideTable: [
+      { styleID: 1, fontName: { family: 'Inter', style: 'Bold', postscript: '' } },
+      { styleID: 2, fontName: { family: 'Inter', style: 'Italic', postscript: '' } },
+    ],
+    characterStyleIDs: [
+      0,0,0,0,0,0,0,  // 'Normal ' — styleID 0 = base style
+      1,1,1,1,         // 'bold'    — styleID 1
+      0,               // ' '
+      2,2,2,2,2,2,     // 'italic'  — styleID 2
+    ],
+  },
+}
+```
+
+`characterStyleIDs` has exactly one entry per character in `characters`. A value
+of `0` means "use the base style from the node"; non-zero values reference entries
+in `styleOverrideTable` by `styleID`.
+
+### Supported per-run properties
+
+| Property | Field on styleOverrideTable entry |
+|----------|----------------------------------|
+| Bold/Italic | `fontName: { style: 'Bold' }` or `'Italic'` or `'Bold Italic'` |
+| Underline | `textDecoration: 'UNDERLINE'` |
+| Strikethrough | `textDecoration: 'STRIKETHROUGH'` |
+| Hyperlink | `hyperlink: { url: 'https://...' }` |
+| Color | `fillPaints: [{ type: 'SOLID', color: {...} }]` |
+
+---
+
+## Bullet & Numbered Lists ✅
+
+Lists are controlled by the `lines` array in `textData`. Each line (delimited by
+`\n` in `characters`) has a corresponding entry in `lines`.
+
+```javascript
+{
+  textData: {
+    characters: 'Item 1\nItem 2\nSub-item\n',
+    lines: [
+      { lineType: 'UNORDERED_LIST', indentationLevel: 0, isFirstLineOfList: true, ... },
+      { lineType: 'UNORDERED_LIST', indentationLevel: 0, isFirstLineOfList: false, ... },
+      { lineType: 'UNORDERED_LIST', indentationLevel: 1, isFirstLineOfList: true, ... },
+    ],
+  },
+}
+```
+
+| lineType | Effect |
+|----------|--------|
+| `PLAIN` | Normal paragraph |
+| `UNORDERED_LIST` | Bullet point (•) |
+| `ORDERED_LIST` | Numbered (1. 2. 3.) — sub-levels use a. b. c. |
+
+`indentationLevel: 0` = top level, `1` = sub-item, etc.
+`isFirstLineOfList: true` resets numbering for ordered lists.
+
+Each line entry also requires: `styleId: 0`, `sourceDirectionality: 'AUTO'`,
+`listStartOffset: 0`.
+
+---
+
 ## Validated
 
 - Freestanding TEXT node on slide with named style ✅
@@ -110,10 +181,12 @@ the node.
 - Horizontal alignment (LEFT, CENTER, RIGHT) ✅
 - TEXT inside FRAME auto-layout container ✅
 - `derivedTextData` can be omitted — Figma recomputes ✅
+- Per-run bold, italic, bold+italic ✅
+- Per-run underline, strikethrough ✅
+- Per-run hyperlinks ✅
+- Bullet lists (UNORDERED_LIST) ✅
+- Numbered lists (ORDERED_LIST) with sub-levels ✅
 
 ## Unknown / Not Yet Investigated
 
-- Per-run formatting (bold + italic in same text box) — may require `styleOverrideTable`
 - Paragraph-level spacing and indentation
-- Text decoration (underline, strikethrough)
-- Text lists (bulleted, numbered)

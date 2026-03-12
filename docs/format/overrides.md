@@ -100,3 +100,37 @@ Overriding an image fill on a ROUNDED_RECTANGLE placeholder:
 3. **`thumbHash`** — Must be `new Uint8Array(0)`. Using a plain object `{}` causes a kiwi-schema encoding error.
 
 4. **Image files** — Both the full image and thumbnail must exist in the `images/` directory, named by their SHA-1 hash (no extension).
+
+---
+
+## nodeGenerationData Overrides
+
+Some node types (SHAPE_WITH_TEXT, TABLE) store their visual properties in
+`nodeGenerationData.overrides` instead of top-level fields. Each override
+is addressed by a `guidPath` using virtual IDs with `sessionID: 40000000`.
+
+### SHAPE_WITH_TEXT
+
+See [shapes.md](shapes.md) for full structure. Key overrides:
+
+| guidPath | Purpose |
+|----------|---------|
+| `40000000:0` | Shape fill (fillPaints, stroke, effects) |
+| `40000000:1` | Text style (fillPaints = text color, font settings) |
+
+**Important:** `setFill()` on a SHAPE_WITH_TEXT must modify
+`overrides[0].fillPaints`, NOT top-level `fillPaints`.
+
+### TABLE
+
+See [shapes.md](shapes.md) for full structure. Key overrides:
+
+| guidPath | Purpose |
+|----------|---------|
+| `40000000:0 > rowID > colID` | Per-cell background fill (optional) |
+| `40000000:1 > rowID > colID` | Per-cell text content |
+| `40000000:2` | Default cell style (fill = cell background color) |
+| `40000000:3` | Default text style (fill = text color) |
+
+Row/column IDs are `{ sessionID: 1, localID: N }` GUIDs assigned when creating
+the table. They are referenced in `tableRowPositions` and `tableColumnPositions`.

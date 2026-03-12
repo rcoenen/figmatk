@@ -110,7 +110,19 @@ This is the heart of the document. Every node — from the root DOCUMENT down to
 
 ### blobs
 
-Array of `{ bytes: Uint8Array }` objects. Referenced by index from node fields like `fillGeometry[].commandsBlob`.
+Array of `{ bytes: Uint8Array }` objects. Referenced by **index** from node fields
+like `fillGeometry[].commandsBlob` and `vectorData.vectorNetworkBlob`.
+
+Known blob types:
+- **fillGeometry commandsBlob** — encoded path commands for rendering shapes/vectors.
+  See [shapes.md](shapes.md) for the binary format (moveTo/lineTo/cubicTo/close).
+- **vectorNetworkBlob** — editable vector network for VECTOR nodes.
+  See [shapes.md](shapes.md) for the binary format (vertices/segments/regions).
+
+Blobs are encoded inline in the kiwi message — the `kiwi-schema` package handles
+serialization automatically via `ByteBuffer.readByteArray()`/`writeByteArray()`.
+When cloning blobs, use `deepClone()` to preserve `Uint8Array` instances
+(`JSON.stringify` corrupts them into plain objects).
 
 ---
 
