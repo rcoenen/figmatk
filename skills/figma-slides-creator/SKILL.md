@@ -1,11 +1,12 @@
 ---
-name: figmatk
+name: figma-slides-creator
 description: >
   Create, edit, and inspect Figma Slides .deck files. Use when the user asks to
   create a presentation, build a slide deck, edit slides, update text or images,
   clone or remove slides, or produce a .deck file for Figma Slides.
+  Powered by FigmaTK under the hood.
 metadata:
-  version: "0.0.7"
+  version: "0.0.8"
 ---
 
 # FigmaTK Skill
