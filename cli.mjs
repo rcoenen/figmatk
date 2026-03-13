@@ -24,14 +24,17 @@ const COMMANDS = {
   'clone-slide':    './commands/clone-slide.mjs',
   'remove-slide':   './commands/remove-slide.mjs',
   'roundtrip':      './commands/roundtrip.mjs',
-  'render':         './commands/render.mjs',
+  'export':         './commands/export.mjs',
 };
 
-const command = process.argv[2];
+const arg2 = process.argv[2];
+let command, rawArgs;
 
-if (!command || command === '--help' || command === '-h') {
+if (!arg2 || arg2 === '--help' || arg2 === '-h') {
   console.log(`FigmaTK — Swiss-army knife for Figma .deck / .fig files\n`);
+  console.log('Usage: figmatk <command> [args...]\n');
   console.log('Commands:');
+  console.log('  export         Export slides as images (PNG/JPG/WEBP)');
   console.log('  inspect        Show document structure (node hierarchy tree)');
   console.log('  list-text      List all text content in the deck');
   console.log('  list-overrides List editable override keys per symbol');
@@ -40,18 +43,18 @@ if (!command || command === '--help' || command === '-h') {
   console.log('  clone-slide    Duplicate a template slide with new content');
   console.log('  remove-slide   Mark slides as REMOVED');
   console.log('  roundtrip      Decode and re-encode (pipeline validation)');
-  console.log('  render         Rasterize slides to PNG');
-  console.log('\nUsage: figmatk <command> [args...]');
   process.exit(0);
 }
 
-if (!COMMANDS[command]) {
-  console.error(`Unknown command: ${command}\nRun with --help for available commands.`);
+if (COMMANDS[arg2]) {
+  command = arg2;
+  rawArgs = process.argv.slice(3);
+} else {
+  console.error(`Unknown command: ${arg2}\nRun with --help for available commands.`);
   process.exit(1);
 }
 
 // Parse args: positional args + flags (--flag value, --flag=value)
-const rawArgs = process.argv.slice(3);
 const positional = [];
 const flags = {};
 
