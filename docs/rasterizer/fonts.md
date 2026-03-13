@@ -110,9 +110,134 @@ For Darker Grotesque, this manifests as noticeably thinner strokes — weight 50
 from @fontsource looks like 400 from Google Fonts. Using the Google Fonts TTFs
 directly fixed SSIM for slide 7 from 0.72 to 0.99.
 
+## Automatic Font Resolution
+
+When a `.deck` uses fonts not bundled with the rasterizer, `resolveFonts()` can
+find and register them automatically — no manual setup needed.
+
+```javascript
+import { resolveFonts } from './font-resolver.mjs';
+
+const deck = await FigDeck.fromDeckFile('slides.deck');
+const { resolved, failed } = await resolveFonts(deck);
+// resolved: ["Roboto", "Montserrat"]  — downloaded + registered
+// failed:   ["MyCustomFont"]          — not found anywhere
+const pngs = await renderDeck(deck);
+```
+
+### Resolution pipeline
+
+For each font family used in the deck (that isn't already built-in):
+
+```
+1. Cache hit?     ~/.figmatk/fonts/<family>-<weight>-normal.ttf
+       ↓ miss
+2. Google Fonts   fetch CSS API → download TTF → patch nameID 1 → cache
+       ↓ miss
+3. System fonts   scan OS font dirs for matching files → register
+       ↓ miss
+4. Fallback       render in Inter (default), emit warning to stderr
+```
+
+### Step 1: Deck scanning
+
+`scanDeckFonts(deck)` walks every node and collects `Map<family, Set<weight>>`.
+It reads font info from:
+
+- `node.fontName.family` + `node.fontName.style` (TEXT nodes)
+- `textData.styleOverrideTable[].fontName` (per-run style overrides)
+- `nodeGenerationData.overrides[1].fontName` (SHAPE_WITH_TEXT nodes)
+
+Weight is derived from the style string: "Bold" → 700, "Medium" → 500,
+"SemiBold" → 600, etc. Unrecognized styles default to 400.
+
+### Step 2: Google Fonts download
+
+Fetches the [Google Fonts CSS2 API](https://fonts.googleapis.com/css2):
+
+```
+GET /css2?family=Roboto:wght@400;500;700
+User-Agent: Mozilla/5.0          ← required to get TTF (not WOFF2)
+```
+
+The CSS response contains `@font-face` blocks with TTF URLs per weight.
+Each TTF is downloaded and **nameID 1 is patched** to the bare family name
+so resvg can match `font-family="Roboto"` (Google Fonts TTFs often have
+weight-specific nameID 1 like "Roboto Medium").
+
+### Step 3: nameID patching (zero-dependency TTF patcher)
+
+The patcher is a ~150 LOC pure-JS implementation that:
+
+1. Reads the TTF offset table and table directory
+2. Rebuilds the `name` table with nameID 1 and 16 set to the target family
+3. Handles both Windows/Unicode (UTF-16BE) and Mac (Latin-1) platform encodings
+4. Reconstructs the full TTF: offset table + table directory + table data
+5. Recalculates all table checksums + `head.checksumAdjustment`
+
+**Format guards:**
+
+- **sfVersion check** — only patches plain TTF (`0x00010000`) and OTF/CFF
+  (`OTTO`). TrueType Collections (`ttcf`), WOFF (`wOFF`), and WOFF2 (`wOF2`)
+  are returned unpatched with a stderr warning.
+- **Name table format check** — only patches format 0 name tables. Format 1
+  (with language tag records) is returned unmodified with a warning.
+
+These guards are sufficient for Google Fonts (always format 0 TTF) and won't
+silently corrupt exotic formats.
+
+### Step 4: System font fallback
+
+If Google Fonts doesn't have the font (e.g. a commercial or custom font), the
+resolver searches OS font directories:
+
+| Platform | Directories |
+|----------|-------------|
+| macOS | `/System/Library/Fonts`, `/Library/Fonts`, `~/Library/Fonts` |
+| Windows | `C:\Windows\Fonts`, `~\AppData\Local\Microsoft\Windows\Fonts` |
+| Linux | `/usr/share/fonts`, `/usr/local/share/fonts`, `~/.local/share/fonts` |
+
+The scanner matches filenames heuristically against the family name (strips
+spaces, tries dash/underscore variants) and weight names ("Bold", "Medium",
+etc.).
+
+**TTC support:** macOS stores many system fonts as `.ttc` (TrueType Collection)
+files — e.g. `Helvetica.ttc` bundles Regular, Bold, Light, etc. in one file.
+TTC files are registered directly with resvg (which parses all fonts inside and
+matches by internal nameID). They are not patched — system fonts already have
+correct family names. A small sentinel file is written to cache so subsequent
+runs don't re-scan.
+
+### Step 5: Cache
+
+Resolved fonts are cached at `~/.figmatk/fonts/`:
+
+```
+~/.figmatk/fonts/
+  roboto-400-normal.ttf       ← patched TTF from Google Fonts
+  roboto-700-normal.ttf
+  helvetica-400-normal.ttf    ← TTC sentinel (points to system file)
+```
+
+The cache is per-family-per-weight. On subsequent renders, cached fonts are
+loaded directly without network requests or filesystem scanning.
+
+### Failure mode
+
+If a font can't be found in cache, Google Fonts, or system fonts, `resolveFonts`
+emits a warning and the font is added to the `failed` list. Text using that font
+renders in Inter (resvg's `defaultFontFamily`) — wrong font, but no crash.
+
+```
+[figmatk] Font "MyCustomFont" missing weights [400, 700] — not on Google Fonts,
+not found in system fonts. Text will render in Inter as fallback.
+Use registerFont() to supply this font manually.
+```
+
 ## Registering Custom Fonts
 
-For decks that use fonts not bundled with the rasterizer:
+For fonts that automatic resolution can't find (proprietary, not on Google Fonts,
+not installed locally):
 
 ```javascript
 import { registerFont, registerFontDir } from './deck-rasterizer.mjs';
@@ -126,15 +251,7 @@ registerFontDir('/path/to/fonts/');
 ```
 
 Fonts can be registered at any time — they take effect on the next render call.
-
-### Using @fontsource packages
-
-```bash
-# Install the font package
-node lib/rasterizer/download-font.mjs "Family Name" 400 500 600 700
-
-# This prints the registerFont() calls to add to deck-rasterizer.mjs
-```
+Manual registration takes precedence over automatic resolution.
 
 ### When fonts don't match
 

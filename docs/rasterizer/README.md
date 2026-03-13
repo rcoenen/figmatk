@@ -22,7 +22,7 @@ FigDeck  →  slideToSvg()  →  SVG string  →  svgToPng()  →  PNG bytes
 
 | Document | Description |
 |----------|-------------|
-| [fonts.md](fonts.md) | Font loading, Inter v3 vs v4, version detection, resvg matching, custom fonts |
+| [fonts.md](fonts.md) | Font loading, automatic resolution (Google Fonts + system fallback), Inter v3 vs v4, nameID patching, TTC support |
 | [pipeline.md](pipeline.md) | SVG generation pipeline, node type dispatch, derivedTextData fields |
 | [testing.md](testing.md) | SSIM quality testing, reference decks, HTML comparison reports |
 
