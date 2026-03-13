@@ -13,11 +13,23 @@
  *   --fonts <dir>   Extra font directory to load (can repeat)
  */
 
-import { mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
 import { join, parse, resolve } from 'path';
+import { createInterface } from 'readline';
 import { FigDeck } from '../lib/fig-deck.mjs';
 import { renderDeck, registerFontDir } from '../lib/rasterizer/deck-rasterizer.mjs';
 import { resolveFonts } from '../lib/rasterizer/font-resolver.mjs';
+
+async function confirmOverwrite(dir) {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise((resolve) => {
+    console.log(`Output directory "${dir}" already exists.`);
+    rl.question(`Delete and replace all contents? (y/N) `, (answer) => {
+      rl.close();
+      resolve(answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
+    });
+  });
+}
 
 export async function run(args, flags) {
   const file = args[0];
@@ -35,6 +47,15 @@ export async function run(args, flags) {
 
   const defaultOutDir = parse(file).name;
   const outDir = resolve(flags.o ?? flags.output ?? defaultOutDir);
+
+  if (existsSync(outDir)) {
+    const confirmed = await confirmOverwrite(outDir);
+    if (!confirmed) {
+      console.log('Aborted.');
+      process.exit(0);
+    }
+    rmSync(outDir, { recursive: true });
+  }
 
   const renderOpts = {};
   if (flags.width) renderOpts.width = parseInt(flags.width);
