@@ -1,6 +1,6 @@
 # FigmaTK — Figma Toolkit
 
-Swiss-army knife CLI for Figma Slides `.deck` files. Parse, inspect, modify, and rebuild presentations programmatically — no Figma API required.
+Swiss-army knife CLI for Figma `.deck` and `.fig` files. Parse, inspect, modify, and rebuild presentations programmatically — no Figma API required.
 
 ## Figma File Formats
 
@@ -9,7 +9,7 @@ Each Figma product has its own native file format:
 | Product | Extension | Supported |
 |---------|-----------|-----------|
 | Figma Slides | `.deck` | ✅ |
-| Figma Design | `.fig` | ❌ not yet |
+| Figma Design | `.fig` | 🔶 read-only |
 | Figma Jam (whiteboard) | `.jam` | ❌ not yet |
 | Figma Buzz | `.buzz` | ❌ not yet |
 | Figma Sites | `.site` | ❌ not yet |
