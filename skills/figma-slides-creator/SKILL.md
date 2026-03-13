@@ -289,7 +289,7 @@ Every slide needs at least **one visual element** — shape, image, SVG, or tabl
 - Centre body text
 - Use accent lines under slide titles (hallmark of AI-generated slides)
 - Text-only slides
-- Low-contrast text against background
+- Low-contrast text against background — **match image tone to slide palette**: dark/moody images on light-background slides make text unreadable; pick a bright image or switch to a dark-background layout
 - Skip the closing slide — it makes the deck feel unfinished
 - Put long paragraphs in body/caption fields — text overflows the container
 
