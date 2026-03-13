@@ -7,9 +7,15 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { FigDeck } from './lib/fig-deck.mjs';
 import { Deck } from './lib/api.mjs';
-import { listTemplateLayouts, createFromTemplate } from './lib/template-deck.mjs';
-import { nid, ov, nestedOv, removeNode, parseId, positionChar } from './lib/node-helpers.mjs';
-import { imageOv, hexToHash, hashToHex } from './lib/image-helpers.mjs';
+import {
+  annotateTemplateLayout,
+  createDraftTemplate,
+  createFromTemplate,
+  listTemplateLayouts,
+  publishTemplateDraft,
+} from './lib/template-deck.mjs';
+import { nid, ov, removeNode } from './lib/node-helpers.mjs';
+import { imageOv, hashToHex } from './lib/image-helpers.mjs';
 import { deepClone } from './lib/deep-clone.mjs';
 
 const server = new McpServer({
@@ -46,7 +52,7 @@ server.tool(
 // ── list-text ───────────────────────────────────────────────────────────
 server.tool(
   'figmatk_list_text',
-  'List all text and image content per slide in a .deck file',
+  'List visible text and image content per slide in a .deck file, including direct slide nodes and instance overrides.',
   { path: z.string().describe('Path to .deck or .fig file') },
   async ({ path }) => {
     const deck = await FigDeck.fromDeckFile(path);
@@ -56,18 +62,41 @@ server.tool(
       if (slide.phase === 'REMOVED') continue;
       const id = nid(slide);
       lines.push(`\n── Slide ${id} "${slide.name || ''}" ──`);
+
+      const directLines = [];
+      deck.walkTree(id, (node, depth) => {
+        if (depth === 0 || node.phase === 'REMOVED') return;
+        if (node.type === 'TEXT' && node.textData?.characters) {
+          directLines.push(`  [text-node] ${nid(node)} "${node.name || ''}": ${node.textData.characters.substring(0, 120)}`);
+        }
+        if (node.type === 'SHAPE_WITH_TEXT' && node.nodeGenerationData?.overrides) {
+          for (const override of node.nodeGenerationData.overrides) {
+            if (override.textData?.characters) {
+              directLines.push(`  [shape-text] ${nid(node)} "${node.name || ''}": ${override.textData.characters.substring(0, 120)}`);
+              break;
+            }
+          }
+        }
+        const imageFill = node.fillPaints?.find(p => p.type === 'IMAGE' && p.image?.hash);
+        if (imageFill) {
+          directLines.push(`  [image-node] ${nid(node)} "${node.name || ''}": ${hashToHex(imageFill.image.hash)}`);
+        }
+      });
+
+      lines.push(...directLines);
+
       const inst = deck.getSlideInstance(id);
       if (!inst?.symbolData?.symbolOverrides) continue;
       for (const ov of inst.symbolData.symbolOverrides) {
         const key = ov.guidPath?.guids?.[0];
         const keyStr = key ? `${key.sessionID}:${key.localID}` : '?';
         if (ov.textData?.characters) {
-          lines.push(`  [text] ${keyStr}: ${ov.textData.characters.substring(0, 120)}`);
+          lines.push(`  [text-override] ${keyStr}: ${ov.textData.characters.substring(0, 120)}`);
         }
         if (ov.fillPaints?.length) {
           for (const p of ov.fillPaints) {
             if (p.image?.hash) {
-              lines.push(`  [image] ${keyStr}: ${hashToHex(p.image.hash)}`);
+              lines.push(`  [image-override] ${keyStr}: ${hashToHex(p.image.hash)}`);
             }
           }
         }
@@ -93,13 +122,13 @@ server.tool(
       function walkChildren(nodeId, depth) {
         const node = deck.getNode(nodeId);
         if (!node || node.phase === 'REMOVED') return;
-        const cid = nid(node);
+        const key = node.overrideKey ? `${node.overrideKey.sessionID}:${node.overrideKey.localID}` : null;
         const type = node.type || '?';
         const name = node.name || '';
-        if (type === 'TEXT' || (node.fillPaints?.some(p => p.type === 'IMAGE'))) {
-          lines.push(`  ${'  '.repeat(depth)}${type} ${cid} "${name}"`);
+        if (key && (type === 'TEXT' || node.fillPaints?.some(p => p.type === 'IMAGE'))) {
+          lines.push(`  ${'  '.repeat(depth)}${type} ${key} "${name}"`);
         }
-        const kids = deck.childrenMap.get(cid) || [];
+        const kids = deck.childrenMap.get(nid(node)) || [];
         for (const kid of kids) walkChildren(nid(kid), depth + 1);
       }
       for (const child of children) walkChildren(nid(child), 0);
@@ -127,7 +156,18 @@ server.tool(
 
     for (const [key, text] of Object.entries(overrides)) {
       const [s, l] = key.split(':').map(Number);
-      inst.symbolData.symbolOverrides.push(ov({ sessionID: s, localID: l }, text));
+      const nextOverride = ov({ sessionID: s, localID: l }, text);
+      const existingIdx = inst.symbolData.symbolOverrides.findIndex(entry =>
+        entry.guidPath?.guids?.length >= 1 &&
+        entry.guidPath.guids[0].sessionID === s &&
+        entry.guidPath.guids[0].localID === l &&
+        entry.textData
+      );
+      if (existingIdx >= 0) {
+        inst.symbolData.symbolOverrides.splice(existingIdx, 1, nextOverride);
+      } else {
+        inst.symbolData.symbolOverrides.push(nextOverride);
+      }
     }
 
     const bytes = await deck.saveDeck(output);
@@ -158,9 +198,18 @@ server.tool(
     if (!inst.symbolData.symbolOverrides) inst.symbolData.symbolOverrides = [];
 
     const [s, l] = targetKey.split(':').map(Number);
-    inst.symbolData.symbolOverrides.push(
-      imageOv({ sessionID: s, localID: l }, imageHash, thumbHash, width, height)
+    const nextOverride = imageOv({ sessionID: s, localID: l }, imageHash, thumbHash, width, height);
+    const existingIdx = inst.symbolData.symbolOverrides.findIndex(entry =>
+      entry.guidPath?.guids?.length >= 1 &&
+      entry.guidPath.guids[0].sessionID === s &&
+      entry.guidPath.guids[0].localID === l &&
+      entry.fillPaints
     );
+    if (existingIdx >= 0) {
+      inst.symbolData.symbolOverrides.splice(existingIdx, 1, nextOverride);
+    } else {
+      inst.symbolData.symbolOverrides.push(nextOverride);
+    }
 
     const opts = imagesDir ? { imagesDir } : {};
     const bytes = await deck.saveDeck(output, opts);
@@ -339,16 +388,69 @@ server.tool(
 
 // ── figmatk_list_template_layouts ────────────────────────────────────────
 server.tool(
+  'figmatk_create_template_draft',
+  'Create a new draft template deck. Draft templates are normal slide decks; later annotate slots and publish-wrap them into module-backed layouts.',
+  {
+    output: z.string().describe('Output path for the draft template .deck file'),
+    title: z.string().describe('Template deck title'),
+    layouts: z.array(z.string()).optional().describe('Optional ordered list of layout names to create, e.g. ["cover", "agenda", "section"]'),
+  },
+  async ({ output, title, layouts }) => {
+    const bytes = await createDraftTemplate(output, { title, layouts });
+    return { content: [{ type: 'text', text: `Created draft template ${output} (${bytes} bytes). Use figmatk_annotate_template_layout to mark layout and slot names.` }] };
+  }
+);
+
+server.tool(
+  'figmatk_annotate_template_layout',
+  'Add explicit layout and slot metadata to a draft or published template. Use figmatk_inspect or figmatk_list_template_layouts first to get slide and node IDs.',
+  {
+    path: z.string().describe('Path to the source .deck file'),
+    output: z.string().describe('Output path for the updated .deck file'),
+    slideId: z.string().describe('Slide node ID to annotate'),
+    layoutName: z.string().optional().describe('Logical layout name without the layout: prefix, e.g. "cover"'),
+    textSlots: z.record(z.string()).optional().describe('Map of nodeId -> text slot name, e.g. {"1:120": "title"}'),
+    imageSlots: z.record(z.string()).optional().describe('Map of nodeId -> image slot name, e.g. {"1:144": "hero_image"}'),
+    fixedImages: z.record(z.string()).optional().describe('Map of nodeId -> fixed image label for decorative/sample content'),
+  },
+  async ({ path, output, slideId, layoutName, textSlots, imageSlots, fixedImages }) => {
+    const bytes = await annotateTemplateLayout(path, output, { slideId, layoutName, textSlots, imageSlots, fixedImages });
+    return { content: [{ type: 'text', text: `Annotated slide ${slideId}. Saved ${output} (${bytes} bytes).` }] };
+  }
+);
+
+server.tool(
+  'figmatk_publish_template_draft',
+  'Wrap draft template slides in publish-like MODULE nodes while preserving the slide subtree and internal canvas assets.',
+  {
+    path: z.string().describe('Path to the draft template .deck file'),
+    output: z.string().describe('Output path for the wrapped .deck file'),
+    slideIds: z.array(z.string()).optional().describe('Optional list of draft slide IDs to wrap. Defaults to every draft layout on the main canvas.'),
+  },
+  async ({ path, output, slideIds }) => {
+    const bytes = await publishTemplateDraft(path, output, { slideIds });
+    return { content: [{ type: 'text', text: `Publish-wrapped draft template to ${output} (${bytes} bytes).` }] };
+  }
+);
+
+server.tool(
   'figmatk_list_template_layouts',
-  'Inspect a Figma .deck template and return available slide layouts with their text field names. Call this first before figmatk_create_from_template.',
+  'Inspect a template or draft template .deck file and return available layouts with explicit text/image slot metadata. Call this before figmatk_create_from_template or figmatk_annotate_template_layout.',
   {
     template: z.string().describe('Path to the .deck template file'),
   },
   async ({ template }) => {
     const layouts = await listTemplateLayouts(template);
     const lines = layouts.map(l => {
-      const fields = l.textFields.map(f => `    - "${f.name}" (${f.nodeId}): "${f.preview}"`).join('\n');
-      return `Slide "${l.name}" [${l.slideId}]\n${fields || '    (no text fields)'}`;
+      const textSlots = l.textFields.map(f => `    - ${f.name} (${f.nodeId}, ${f.source}): "${f.preview}"`).join('\n');
+      const imageSlots = l.imagePlaceholders.map(f => `    - ${f.name} (${f.nodeId}, ${f.source}, ${f.width}x${f.height})${f.hasCurrentImage ? ' [image]' : ''}`).join('\n');
+      return [
+        `Layout "${l.name}" [${l.slideId}]`,
+        `  state: ${l.state}${l.moduleId ? `, module ${l.moduleId}` : ''}, row ${l.rowId}`,
+        `  explicit slots: ${l.hasExplicitSlotMetadata ? 'yes' : 'no'}`,
+        textSlots ? `  text slots:\n${textSlots}` : '  text slots: (none)',
+        imageSlots ? `  image slots:\n${imageSlots}` : '  image slots: (none)',
+      ].join('\n');
     });
     return { content: [{ type: 'text', text: lines.join('\n\n') }] };
   }
@@ -357,13 +459,14 @@ server.tool(
 // ── figmatk_create_from_template ─────────────────────────────────────────
 server.tool(
   'figmatk_create_from_template',
-  'Create a new Figma Slides deck by cherry-picking layouts from a template .deck file and populating them with content. Preserves all template colors, fonts, and styling.',
+  'Create a new Figma Slides deck by cherry-picking layouts from a draft, published, or publish-like template .deck file and populating explicit text/image slots. Preserves colors, fonts, internal assets, and special nodes.',
   {
     template: z.string().describe('Path to the source .deck template file'),
     output:   z.string().describe('Output path for the new .deck file (use /tmp/)'),
     slides: z.array(z.object({
       slideId: z.string().describe('Slide ID from figmatk_list_template_layouts (e.g. "1:74")'),
-      text:    z.record(z.string()).optional().describe('Map of text field name → value (e.g. { "Title": "My Company", "Body 1": "..." })'),
+      text:    z.record(z.string()).optional().describe('Map of text slot/name/nodeId -> value (e.g. { "title": "My Company" })'),
+      images:  z.record(z.string()).optional().describe('Map of image slot/name/nodeId -> absolute image path (e.g. { "hero_image": "/tmp/photo.jpg" })'),
     })).describe('Ordered list of slides to include, each referencing a template layout'),
   },
   async ({ template, output, slides }) => {

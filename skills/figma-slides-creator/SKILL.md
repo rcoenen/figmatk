@@ -11,6 +11,8 @@ metadata:
 
 # Figma Slides Creator
 
+Use this skill for the default workflow: take an existing template and build a new presentation from it. For authoring reusable templates themselves, use `skills/figma-template-builder/SKILL.md`.
+
 ## ⚠️ Never open .deck files directly
 
 `.deck` files are binary ZIP archives. **Never open, read, or display a `.deck` file** — it will show garbage bytes in the panel. To inspect or modify a `.deck` file, always use the CLI commands or Node.js API shown below.
@@ -25,6 +27,7 @@ To let the user view the result: tell them to **open the file in Figma Desktop**
 |------|----------|
 | Create from scratch | **Path A** — `figmatk_create_deck` MCP tool |
 | Create from a `.deck` template | **Path B** — `figmatk_list_template_layouts` + `figmatk_create_from_template` |
+| Author a reusable template | Use `skills/figma-template-builder/SKILL.md` |
 | Edit text or images in an existing deck | `figmatk_update_text`, `figmatk_insert_image` |
 | Clone, remove, or restructure slides | `figmatk_clone_slide`, `figmatk_remove_slide` |
 | Inspect structure or read content | `figmatk_inspect`, `figmatk_list_text` |
@@ -49,13 +52,16 @@ figmatk_list_template_layouts("/path/to/template.deck")
 
 Returns a catalog of all available slide layouts. Each entry includes:
 - `slideId` — the ID to reference this layout
-- Text fields — editable TEXT nodes with their names and current content
-- Image placeholders — FRAME nodes with IMAGE fill (these need a real image)
+- Layout state — `draft` or `published`
+- Text slots — explicit `slot:text:*` fields when present, otherwise fallback text candidates
+- Image slots — explicit `slot:image:*` fields when present, otherwise fallback image candidates
+- Node IDs — usable for direct targeting when the template has not been fully annotated yet
 
 **Read the catalog carefully before picking layouts:**
-- Match each slide's purpose to your content (the existing text in the template is a strong hint — e.g. "Use this slide to introduce the big problem" → use for your problem statement)
-- Slides with image placeholders need an appropriate image — the surrounding text should describe what's shown in that image
-- Slides with `SHAPE_WITH_TEXT` pill labels (MONTH XX YEAR, TAGLINE, CONFIDENTIAL) cannot be changed programmatically — tell the user to update those in Figma
+- Prefer layouts with explicit slot metadata when available
+- Match each slide's purpose to your content; the existing copy is often the best hint
+- Use slot names first, then node IDs, then raw node names when populating content
+- If a layout exposes no explicit image slots, treat heuristic image candidates as weaker signals and avoid overwriting decorative sample imagery unless the user clearly wants that
 
 ### Step 2 — Create the deck
 
@@ -64,14 +70,14 @@ figmatk_create_from_template({
   template: "/path/to/template.deck",
   output: "/tmp/my-deck.deck",
   slides: [
-    { slideId: "1:74",  text: { "Title": "My Company" } },
-    { slideId: "1:112", text: { "Header 1": "The problem.", "Body 1": "Description here." } },
-    { slideId: "1:643", text: { "Thank you": "Thank you!" } }
+    { slideId: "1:74",  text: { "title": "My Company" } },
+    { slideId: "1:112", text: { "header": "The problem.", "body": "Description here." }, images: { "hero_image": "/tmp/problem-photo.jpg" } },
+    { slideId: "1:643", text: { "title": "Thank you!" } }
   ]
 })
 ```
 
-Only pass text fields that exist in the layout's catalog — extra fields are silently ignored.
+Only pass slots or node IDs that exist in the layout's catalog. Extra keys are silently ignored.
 
 ---
 
