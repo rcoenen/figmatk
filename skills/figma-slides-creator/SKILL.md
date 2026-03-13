@@ -1,43 +1,19 @@
 ---
 name: figma-slides-creator
 description: >
-  Create, populate, edit, and inspect Figma Slides .deck files. Use when the
-  user wants a finished presentation deck, wants to fill an existing template
-  with content, or wants to edit a non-template deck's text, images, or slide
-  order. Do not use this skill to author reusable templates themselves.
+  Create, edit, and inspect Figma Slides .deck files. Use when the user asks to
+  create a presentation, build a slide deck, edit slides, update text or images,
+  clone or remove slides, or produce a .deck file for Figma Slides.
   Powered by FigmaTK under the hood.
 metadata:
-  version: "0.3.3"
+  version: "0.0.9"
 ---
 
-# Figma Slides Creator
-
-Use this skill for the default workflow: take an existing template and build a new presentation from it. For authoring reusable templates themselves, use `skills/figma-template-builder/SKILL.md`.
-
-## MCP First
-
-In Claude Cowork, use the MCP tools first and keep the workflow inside the plugin.
-
-- Do not inspect the installed `figmatk` npm package just to discover capabilities.
-- Do not write ad hoc Node.js scripts when an MCP tool already covers the task.
-- Do not fall back to direct library calls for template listing, template instantiation, deck creation, or normal deck editing.
-
-Use direct Node.js or CLI paths only if the MCP server is unavailable or a required capability does not exist in the MCP surface yet.
-
-## Skill Boundary
-
-Use this skill when the outcome is a finished deck for immediate use.
-
-Switch to `skills/figma-template-builder/SKILL.md` when the user wants to:
-
-- build a reusable template
-- define layouts or placeholders
-- rename slots for future sessions
-- derive a new template system from references or examples
+# FigmaTK Skill
 
 ## ⚠️ Never open .deck files directly
 
-`.deck` files are binary ZIP archives. **Never open, read, or display a `.deck` file** — it will show garbage bytes in the panel. To inspect or modify a `.deck` file in Claude Cowork, use the MCP tools below.
+`.deck` files are binary ZIP archives. **Never open, read, or display a `.deck` file** — it will show garbage bytes in the panel. To inspect or modify a `.deck` file, always use the CLI commands or Node.js API shown below.
 
 To let the user view the result: tell them to **open the file in Figma Desktop** (`File → Open` or double-click the `.deck` file).
 
@@ -47,151 +23,102 @@ To let the user view the result: tell them to **open the file in Figma Desktop**
 
 | Task | Approach |
 |------|----------|
-| Create from scratch | **Path A** — `figmatk_create_deck` MCP tool |
-| Create from a `.deck` template | **Path B** — `figmatk_list_template_layouts` + `figmatk_create_from_template` |
-| Author a reusable template | Use `skills/figma-template-builder/SKILL.md` |
-| Edit text or images in an existing deck | `figmatk_update_text`, `figmatk_insert_image` |
-| Clone, remove, or restructure slides | `figmatk_clone_slide`, `figmatk_remove_slide` |
-| Inspect structure or read content | `figmatk_inspect`, `figmatk_list_text` |
+| Create a new deck from scratch | Use the high-level JS API (`lib/api.mjs`) |
+| Edit text or images in an existing deck | Use MCP tools (`figmatk_update_text`, `figmatk_insert_image`) |
+| Clone, remove, or restructure slides | Use MCP tools (`figmatk_clone_slide`, `figmatk_remove_slide`) |
+| Inspect structure or read content | Use MCP tools (`figmatk_inspect`, `figmatk_list_text`) |
 
 ---
 
-## File locations — always use /tmp
+## Path A — Create from Scratch (High-Level API)
 
-**All files go in `/tmp/`** — scripts, output decks, images, everything. Never write to the Desktop, Documents, Downloads, or any user directory. Never create intermediate notes or reference markdown files. Just build and save the deck.
+Use this when the user wants a new presentation. Write a Node.js script and execute it.
 
-## Default Workflow
+> **Import path:** `figmatk` is an npm package. Import from the installed package:
+> ```javascript
+> import { Deck } from 'figmatk';
+> ```
 
-1. Catalog the template or inspect the deck.
-2. Build a layout inventory: what each layout is for, what content structure it supports, and which elements are editable.
-3. Plan the target presentation slide by slide.
-4. Choose only the layouts needed for that presentation, in the order that best tells the story.
-5. Populate text slots first, then image slots.
-6. Save to a new `/tmp/` output path.
-7. Sanity-check the result with `figmatk_list_text` or by opening it in Figma Desktop.
+```javascript
+import { Deck } from 'figmatk';
 
----
+const deck = await Deck.create('My Presentation');
 
-## Path B — Create from a Template (preferred when user provides a .deck file)
+const slide = deck.addBlankSlide();          // template blank slide auto-removed
+slide.setBackground('Black');                // named color — see list below
+slide.addText('Slide Title', {
+  style: 'Title', color: 'White',
+  x: 64, y: 80, width: 1792, align: 'LEFT'
+});
+slide.addText('Subtitle', {
+  style: 'Body 1', color: 'Grey',
+  x: 64, y: 240, width: 1200, align: 'LEFT'
+});
 
-Use this path when the user provides a `.deck` template file. The output deck inherits all fonts, colors, spacing, and visual design from the template verbatim.
-
-### Core rule
-
-A template is a **library of candidate layouts**, not a fixed slide sequence to fill from top to bottom.
-
-- Do not assume every template layout should be used.
-- Do not fill layouts in the template's existing order just because they appear that way.
-- It is normal to skip most layouts.
-- It is normal to reuse the same layout multiple times if it fits multiple slides.
-
-Wrong mental model:
-
-- treat the template like a form and fill each slide linearly
-
-Right mental model:
-
-- catalog the layout library
-- choose the best layouts for the target deck
-- instantiate only the selected subset in the desired presentation order
-
-Forbidden when a template is available:
-
-- do not remove unused slides from the source template as a way to build the output deck
-- do not reorder source template slides to match the target narrative
-- do not inspect `FigDeck`, node internals, or CLI commands if `figmatk_list_template_layouts` and `figmatk_create_from_template` are available
-- do not write custom `.mjs` deck-building scripts for normal template instantiation
-
-### Step 1 — Catalog the template
-
-```
-figmatk_list_template_layouts("/path/to/template.deck")
+await deck.save('/path/to/output.deck');
 ```
 
-Returns a catalog of all available slide layouts. Each entry includes:
-- `slideId` — the ID to reference this layout
-- Layout state — `draft` or `published`
-- Text slots — explicit `slot:text:*` fields when present, otherwise fallback text candidates
-- Image slots — explicit `slot:image:*` fields when present, otherwise fallback image candidates
-- Node IDs — usable for direct targeting when the template has not been fully annotated yet
+### ⚠️ Critical gotchas
 
-**Treat this output as a layout library inventory:**
-- Prefer layouts with explicit slot metadata when available
-- Infer each layout's job: title, agenda, split content, quote, stat, comparison, section break, closing, and so on
-- Note content capacity: short headline, dense body copy, single image, multi-image, device mockup, etc.
-- Match each planned slide's purpose to the best available layout; the existing copy is often the best hint
-- Use slot names first, then node IDs, then raw node names when populating content
-- If a layout exposes no explicit image slots, treat heuristic image candidates as weaker signals and avoid overwriting decorative sample imagery unless the user clearly wants that
+| Issue | Wrong | Right |
+|-------|-------|-------|
+| `setBackground` with hex | `s.setBackground('#1A1A1A')` | `s.setBackground('Black')` |
+| `setBackground` with raw RGB | `s.setBackground({ r:0.1, g:0.1, b:0.1 })` | `s.setBackground('Black')` — raw RGB silently renders white |
+| Shape method signature | `s.addRectangle({ x:0, y:0, width:100 })` | `s.addRectangle(0, 0, 100, 100, opts)` |
+| Shape fill color | `{ fill: '#F4900C' }` | `{ fill: hex('#F4900C') }` — use the hex() helper |
+| `addLine` options | `{ strokeColor: ..., strokeWeight: 2 }` | `{ color: 'Black', weight: 2 }` |
+| `align` value | `align: 'left'` | `align: 'LEFT'` (uppercase) |
 
-Before instantiating anything, build a slide plan such as:
+### Hex color helper (for shape fills)
 
-- slide 1 -> cover layout
-- slide 2 -> agenda layout
-- slide 3 -> two-column problem/solution layout
-- slide 4 -> image-led evidence layout
-- slide 5 -> stat callout layout
-- slide 6 -> closing layout
-
-### Step 2 — Create the deck from the chosen subset
-
-```
-figmatk_create_from_template({
-  template: "/path/to/template.deck",
-  output: "/tmp/my-deck.deck",
-  slides: [
-    { slideId: "1:74",  text: { "title": "My Company" } },
-    { slideId: "1:112", text: { "header": "The problem.", "body": "Description here." }, images: { "hero_image": "/tmp/problem-photo.jpg" } },
-    { slideId: "1:643", text: { "title": "Thank you!" } }
-  ]
-})
-```
-
-Only pass slots or node IDs that exist in the layout's catalog. Extra keys are silently ignored.
-
-The `slides` array is the presentation plan. Its order should match the desired output deck order, not the template's original order.
-
-If a template contains flat slides rather than symbol instances or modules, this path still applies. Do not fall back to manual source-template surgery just because clone/remove commands are not a fit.
-
----
-
-## Path A — Create from Scratch (MCP tool — no template)
-
-**Always use this path.** No npm install, no scripts, no workspace setup.
-
-Call `figmatk_create_deck` with a structured slide description:
-
-```json
-{
-  "output": "/tmp/my-deck.deck",
-  "title": "My Presentation",
-  "theme": "midnight",
-  "slides": [
-    { "type": "title",   "title": "My Presentation", "subtitle": "A subtitle" },
-    { "type": "bullets", "title": "Key Points", "bullets": ["Point one", "Point two", "Point three"] },
-    { "type": "two-column", "title": "Comparison", "leftText": "Left side content", "rightText": "Right side content" },
-    { "type": "stat",    "title": "By the numbers", "stat": "42%", "caption": "of users prefer this" },
-    { "type": "image-full", "image": "/tmp/photo.jpg", "title": "Caption text" },
-    { "type": "closing", "title": "Thank you", "subtitle": "Questions?" }
-  ]
+```javascript
+function hex(h) {
+  return { r: parseInt(h.slice(1,3),16)/255, g: parseInt(h.slice(3,5),16)/255, b: parseInt(h.slice(5,7),16)/255 };
 }
+// Usage: s.addRectangle(0, 0, 200, 50, { fill: hex('#F4900C') })
 ```
 
-### Slide types
+### Text styles
 
-| Type | Fields |
-|------|--------|
-| `title` | `title`, `subtitle` |
-| `bullets` | `title`, `bullets` (array) |
-| `two-column` | `title`, `leftText`, `rightText`, `image` (right side) |
-| `stat` | `title`, `stat` (big number), `caption` |
-| `image-full` | `image` (path), `title`, `body` (overlay text) |
-| `closing` | `title`, `subtitle` |
+| Style | Size | Weight | Use for |
+|-------|------|--------|---------|
+| `Title` | 96pt | Bold | Slide title |
+| `Header 1` | 60pt | Bold | Section headers |
+| `Header 2` | 48pt | Bold | Sub-headers |
+| `Header 3` | 36pt | Bold | In-slide headings |
+| `Body 1` | 36pt | Regular | Primary body text |
+| `Body 2` | 30pt | Regular | Secondary body text |
+| `Body 3` | 24pt | Regular | Captions, labels |
+| `Note` | 20pt | Regular | Footnotes, sources |
 
-### Themes
+### Named colors for `setBackground()`
 
-`midnight` · `ocean` · `forest` · `coral` · `terracotta` · `minimal`
+> **Case-sensitive.** `'Black'` works, `'black'` does not.
 
-Each theme handles backgrounds, accent colors, and text colors automatically.
+`'Black'`, `'White'`, `'Grey'`, `'Blue'`, `'Red'`, `'Yellow'`, `'Green'`, `'Orange'`, `'Pink'`, `'Purple'`, `'Teal'`, `'Violet'`, `'Persimmon'`, `'Pale Pink'`, `'Pale Blue'`, `'Pale Green'`, `'Pale Teal'`, `'Pale Purple'`, `'Pale Persimmon'`, `'Pale Violet'`, `'Pale Red'`, `'Pale Yellow'`
+
+Use `'Black'` for dark backgrounds, `'White'` for light. For custom slide backgrounds, use the closest named color — **not hex**.
+
+### Slide dimensions
+
+1920 × 1080px. All positions and sizes in pixels.
+
+### Slide methods (correct signatures)
+
+```javascript
+slide.setBackground(namedColor)                   // named color only — hex/raw RGB render white
+slide.addText(text, opts)                         // opts: style, color (named or hex('#...')), x, y, width, align, bold, italic, fontSize
+slide.addFrame(opts)                              // auto-layout: stackMode, spacing, x, y, width, height
+slide.addRectangle(x, y, width, height, opts)    // opts: fill (named or {r,g,b}), opacity, cornerRadius
+slide.addEllipse(x, y, width, height, opts)      // opts: fill, opacity
+slide.addDiamond(x, y, width, height, opts)
+slide.addTriangle(x, y, width, height, opts)
+slide.addStar(x, y, width, height, opts)
+slide.addLine(x1, y1, x2, y2, opts)             // opts: color, weight
+slide.addImage(path, opts)                        // opts: x, y, width, height
+slide.addTable(data, opts)                        // 2D string array; opts: x, y, width, colWidths, rowHeight
+slide.addSVG(x, y, width, svgPathOrBuf, opts)
+```
 
 ---
 
@@ -214,7 +141,6 @@ Use this when the user provides a `.deck` file to modify.
 
 | Tool | Purpose |
 |------|---------|
-| `figmatk_create_deck` | **Create a new deck from scratch** — no npm install needed |
 | `figmatk_inspect` | Node hierarchy tree — structure, node IDs, slide count |
 | `figmatk_list_text` | All text strings and image hashes per slide |
 | `figmatk_list_overrides` | Editable override keys per symbol (component) |
@@ -223,45 +149,55 @@ Use this when the user provides a `.deck` file to modify.
 | `figmatk_clone_slide` | Deep-clone a slide with new text and images |
 | `figmatk_remove_slide` | Mark slides as REMOVED (never deleted) |
 | `figmatk_roundtrip` | Decode + re-encode for pipeline validation |
+| `figmatk_render_slide` | Render a slide to image (inline WebP or saved PNG) |
 
-## Final Checks
+---
 
-Before finishing, prefer at least one of these:
+## Path C — Visual QA (Render + Inspect)
 
-- `figmatk_list_text` on the output deck
-- `figmatk_roundtrip` if the deck went through multiple edits
-- a manual open check in Figma Desktop when the user is validating upload/render behavior
+After creating or modifying a deck, **always render and visually inspect** the output. This catches issues that text inspection misses: overflowing text, broken layouts, wrong colors, misaligned elements.
+
+### Workflow
+
+1. Render each slide at preview size (returns inline WebP image):
+   ```
+   figmatk_render_slide(path: "/tmp/my-deck.deck", slide: 1)
+   ```
+2. Inspect the returned image for:
+   - Text overflowing its bounding box or clipped
+   - Layout misalignment or overlapping elements
+   - Wrong colors or missing backgrounds
+   - Missing images or broken fills
+3. If issues are found, fix them and re-render
+4. For full-resolution export:
+   ```
+   figmatk_render_slide(path: "/tmp/my-deck.deck", slide: 1, output: "/tmp/slide-1.png")
+   ```
+
+### Render options
+
+| Option | Example | Effect |
+|--------|---------|--------|
+| (none) | `slide: 1` | Inline WebP at 800px wide (for QA) |
+| `width` | `width: 400` | Resize to 400px wide (proportional) |
+| `scale` | `scale: "50%"` | Half size (960×540) |
+| `output` | `output: "/tmp/s.png"` | Save full PNG to disk |
+
+### CLI alternative
+
+```bash
+figmatk render my-deck.deck -o /tmp/renders/                   # all slides
+figmatk render my-deck.deck -o /tmp/renders/ --slide 3         # single slide
+figmatk render my-deck.deck -o /tmp/renders/ --width 400       # thumbnail size
+```
+
+**Important:** Always run visual QA on every deck you create or modify. Do not skip this step.
 
 ---
 
 ## Design Philosophy
 
-Think like a **professional PowerPoint designer**, not an AI generating slides. Every deck must feel like it was made by a human who spent a day on it.
-
-### Deck structure — use this template every time
-
-A proper deck has a clear spine. Follow this slide order:
-
-| # | Slide type | Purpose |
-|---|-----------|---------|
-| 1 | **Title** | Dark bg, big title, subtitle, presenter name |
-| 2 | **Agenda / Overview** | 3–5 bullet topics, light bg |
-| 3–N | **Content slides** | Vary layout each slide — see below |
-| N+1 | **Section divider** (optional) | Bold colour block to signal a new chapter |
-| Last | **Closing / CTA** | Dark bg mirrors title slide — "Thank you", next steps, contact |
-
-The title and closing slides must use the **same dark background** — this creates the "sandwich" effect that makes decks feel complete.
-
-### Consistent visual motif — pick one and use it on every slide
-
-Choose one repeating element and place it consistently across all content slides:
-
-- **Top accent bar**: `addRectangle(0, 0, 1920, 8, { fill: hex('#...') })` — full-width coloured strip at top
-- **Left colour panel**: tall rectangle on the left third, text floats right
-- **Corner badge**: small filled circle or square in bottom-right with slide number or logo
-- **Bottom rule**: thin full-width line at y=1040
-
-Without a motif, slides look unrelated. With one, the deck feels designed.
+Every deck must look **intentionally designed**, not AI-generated.
 
 ### Colour
 
@@ -280,29 +216,18 @@ Without a motif, slides look unrelated. With one, the deck feels designed.
 | Ocean | `'Blue'` | `hex('#21295C')` | `'White'` |
 | Minimal | `'White'` | `hex('#36454F')` | `'Black'` |
 
-### Layout — vary every slide
+### Layout
 
-Each content slide should use a **different layout type**. Never repeat the same structure back-to-back.
+- Every slide needs at least **one visual element** — shape, image, SVG, or table.
+- **Vary layouts** — never repeat the same structure slide after slide.
+- Carry one visual motif through every slide (coloured accent bar, icon circles, etc.).
 
-| Layout | When to use |
-|--------|------------|
-| Two-column | Comparison, pros/cons, text + image |
-| 2×2 or 2×3 grid | Features, icons, categories |
-| Large stat callout | One big number + explanation |
-| Half-background image | Photo-rich slides |
-| Timeline / steps | Process, history, roadmap |
-| Icon + text rows | Lists that need visual weight |
-| Full-bleed image | Impact moment, section break |
-
-Every slide needs at least **one visual element** — shape, image, SVG, or table. No text-only slides.
+**Layout options:** two-column, icon+text rows, 2×2/2×3 grid, large stat callout, half-background image, timeline/steps.
 
 ### Typography
 
-- Left-align body text. Centre only titles on title/closing slides.
+- Left-align body text. Centre only titles.
 - Minimum 64px margin from slide edges. 24–48px between content blocks.
-- Use `Header 2` or `Header 3` for slide titles on content slides (not `Title` — that's for the title slide only).
-- **Body text: max 2 sentences per text block.** Text boxes have fixed heights — overflow gets clipped. If you have more to say, use a bullet list or split across slides.
-- **Bullets: max 6 items, max 8 words per bullet.** Longer bullets wrap and push content off-slide.
 
 ### Never do
 
@@ -310,17 +235,17 @@ Every slide needs at least **one visual element** — shape, image, SVG, or tabl
 - Centre body text
 - Use accent lines under slide titles (hallmark of AI-generated slides)
 - Text-only slides
-- Low-contrast text against background — **match image tone to slide palette**: dark/moody images on light-background slides make text unreadable; pick a bright image or switch to a dark-background layout
-- Skip the closing slide — it makes the deck feel unfinished
-- Put long paragraphs in body/caption fields — text overflows the container
+- Low-contrast text against background
 
 ---
 
 ## QA
 
 1. Self-check: no placeholder text (`lorem ipsum`, `[title here]`) remains
-2. Tell the user to open the `.deck` in Figma Desktop to catch rendering issues
-3. Offer to fix anything they report
+2. **Render every slide** using `figmatk_render_slide` and visually inspect for overflows, clipping, alignment, and color issues
+3. Fix any issues found and re-render to confirm
+4. Tell the user to open the `.deck` in Figma Desktop for final review
+5. Offer to fix anything they report
 
 ---
 

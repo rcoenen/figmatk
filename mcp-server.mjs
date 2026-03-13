@@ -8,6 +8,9 @@ import { z } from 'zod';
 import packageJson from './package.json' with { type: 'json' };
 import { FigDeck } from './lib/fig-deck.mjs';
 import { Deck } from './lib/api.mjs';
+import { slideToSvg } from './lib/rasterizer/svg-builder.mjs';
+import { svgToPng } from './lib/rasterizer/deck-rasterizer.mjs';
+import { resolveFonts } from './lib/rasterizer/font-resolver.mjs';
 import {
   annotateTemplateLayout,
   createDraftTemplate,
@@ -473,6 +476,63 @@ server.tool(
   async ({ template, output, slides }) => {
     const bytes = await createFromTemplate(template, output, slides);
     return { content: [{ type: 'text', text: `Created ${output} — ${slides.length} slides (${bytes} bytes). Open in Figma Desktop.` }] };
+  }
+);
+
+// ── render-slide ───────────────────────────────────────────────────────
+server.tool(
+  'figmatk_render_slide',
+  'Render a slide from a .deck file to an image. Without output path, returns inline WebP for visual QA. With output path, saves full PNG. Default is 1920×1080; use width (pixels) or scale (e.g. "50%") to resize.',
+  {
+    path: z.string().describe('Path to .deck file'),
+    slide: z.number().int().min(1).describe('Slide number (1-based)'),
+    output: z.string().optional().describe('Optional output path to save the PNG file (full resolution)'),
+    width: z.number().int().optional().describe('Output width in pixels (height scales proportionally)'),
+    scale: z.string().optional().describe('Scale as percentage, e.g. "50%" or "25%"'),
+  },
+  async ({ path, slide, output, width, scale }) => {
+    const deck = await FigDeck.fromDeckFile(path);
+    await resolveFonts(deck, { quiet: true });
+    const slides = deck.getActiveSlides();
+
+    if (slide > slides.length) {
+      return { content: [{ type: 'text', text: `Slide ${slide} does not exist — deck has ${slides.length} slides` }] };
+    }
+
+    const svg = slideToSvg(deck, slides[slide - 1]);
+
+    // Build render options
+    const renderOpts = {};
+    if (width) {
+      renderOpts.width = width;
+    } else if (scale) {
+      const pct = parseFloat(scale.replace('%', ''));
+      if (!isNaN(pct) && pct > 0) renderOpts.scale = pct / 100;
+    }
+
+    const png = await svgToPng(svg, renderOpts);
+    const buf = Buffer.from(png);
+
+    if (output) {
+      const { writeFileSync } = await import('fs');
+      writeFileSync(output, buf);
+      return { content: [{ type: 'text', text: `Rendered slide ${slide} → ${output} (${buf.length} bytes)` }] };
+    }
+
+    // For inline display: convert to WebP (much smaller) via sharp
+    // Default to width=800 if no size specified to stay under MCP 1MB limit
+    const sharp = (await import('sharp')).default;
+    let img = sharp(buf);
+    if (!width && !scale) img = img.resize(800);
+    const webp = await img.webp({ quality: 80 }).toBuffer();
+
+    return {
+      content: [{
+        type: 'image',
+        data: webp.toString('base64'),
+        mimeType: 'image/webp',
+      }],
+    };
   }
 );
 
