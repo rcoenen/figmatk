@@ -13,6 +13,11 @@
  *   clone-slide    Duplicate a template slide with new content
  *   remove-slide   Mark slides as REMOVED
  *   roundtrip      Decode and re-encode (pipeline validation)
+ *
+ * Disclaimer:
+ *   Figma is a trademark of Figma, Inc.
+ *   FigmaTK is an independent open-source project and is not affiliated with,
+ *   endorsed by, or sponsored by Figma, Inc.
  */
 
 const COMMANDS = {

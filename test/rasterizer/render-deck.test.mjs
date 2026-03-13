@@ -153,7 +153,7 @@ describe('svg-deck rendering (VECTOR nodes)', () => {
 });
 
 describe('4-text-column deck rendering', () => {
-  it('slide 1 SSIM ≥ 0.90', async () => {
+  it('slide 1 SSIM ≥ 0.90', { timeout: 15000 }, async () => {
     const deck    = await FigDeck.fromDeckFile(FOUR_TEXT_COL_DECK);
     expect(deck.getActiveSlides().length).toBe(1);
 

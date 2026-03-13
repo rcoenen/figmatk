@@ -124,3 +124,9 @@ await deck.save('output.deck');
 ## License
 
 MIT
+
+## Disclaimer
+
+Figma is a trademark of Figma, Inc.
+
+FigmaTK is an independent open-source project and is not affiliated with, endorsed by, or sponsored by Figma, Inc.
