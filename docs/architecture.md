@@ -90,38 +90,45 @@ Everything below the product layer is format-agnostic:
 
 ```
 lib/
-  fig-deck.mjs          ← codec + ZIP + slides mixed together
-  api.mjs               ← Slides-only (Deck, Slide, Symbol)
-  node-helpers.mjs       ← shared
-  image-helpers.mjs      ← shared
-  deep-clone.mjs         ← shared
-  template-deck.mjs      ← Slides-only
-  rasterizer/            ← shared (already clean)
+  core/
+    fig-deck.mjs          ← binary codec (kiwi, zstd, chunks) + node tree
+    node-helpers.mjs       ← GUIDs, nid, parseId, tree traversal
+    image-helpers.mjs      ← SHA-1 hashing, thumbnails
+    image-utils.mjs        ← image dimensions, thumbnail generation
+    deep-clone.mjs         ← typed-array-aware cloning
+  slides/
+    api.mjs               ← Deck, Slide, Symbol, TextNode, ImageNode
+    template-deck.mjs      ← template inspection, authoring, instantiation
+    blank-template.deck    ← blank slide template
+  rasterizer/             ← shared (format-agnostic)
+    svg-builder.mjs
+    deck-rasterizer.mjs
+    font-resolver.mjs
+    render-report-lib.mjs
 ```
 
 ### Target (when .fig support is added)
 
 ```
 lib/
-  core/
-    figma-codec.mjs      ← binary codec (kiwi, zstd, chunks)
-    node-tree.mjs         ← node map, children, traversal
-    node-helpers.mjs      ← GUIDs, nid, parseId
-    image-helpers.mjs     ← SHA-1, thumbnails
-    deep-clone.mjs        ← typed-array cloning
-    blob-decoder.mjs      ← commandsBlob, VNB decoding
-  slides/
-    deck.mjs              ← Deck class (ZIP handling + slides API)
-    slide.mjs             ← Slide class
-    symbol.mjs            ← Symbol/template resolution
-    template.mjs          ← slide cloning, layout building
-  design/
-    file.mjs              ← File class (raw .fig I/O)
-    page.mjs              ← Page class
-    component.mjs         ← Component/variant handling
-  rasterizer/             ← unchanged (already shared)
+  core/                   ← extract blob-decoder from fig-deck, rename class
+    figma-codec.mjs        ← binary codec (kiwi, zstd, chunks)
+    node-helpers.mjs
+    image-helpers.mjs
+    image-utils.mjs
+    deep-clone.mjs
+    blob-decoder.mjs       ← commandsBlob, VNB decoding (currently inline)
+  slides/                  ← already in place
+    api.mjs
+    template-deck.mjs
+    blank-template.deck
+  design/                  ← new product layer
+    file.mjs               ← File class (raw .fig I/O)
+    page.mjs               ← Page class
+    component.mjs          ← Component/variant handling
+  rasterizer/              ← rename deck-rasterizer → png-renderer
     svg-builder.mjs
-    deck-rasterizer.mjs   ← rename to png-renderer.mjs
+    png-renderer.mjs
     font-resolver.mjs
     render-report-lib.mjs
 ```

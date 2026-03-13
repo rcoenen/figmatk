@@ -12,7 +12,7 @@ import { describe, it, expect, afterAll } from 'vitest';
 import { writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { FigDeck } from '../../lib/fig-deck.mjs';
+import { FigDeck } from '../../lib/core/fig-deck.mjs';
 import { slideToSvg } from '../../lib/rasterizer/svg-builder.mjs';
 import { svgToPng } from '../../lib/rasterizer/deck-rasterizer.mjs';
 import { buildReportRow, writeRenderReport, computeSsim } from '../../lib/rasterizer/render-report-lib.mjs';

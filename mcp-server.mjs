@@ -6,8 +6,8 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import packageJson from './package.json' with { type: 'json' };
-import { FigDeck } from './lib/fig-deck.mjs';
-import { Deck } from './lib/api.mjs';
+import { FigDeck } from './lib/core/fig-deck.mjs';
+import { Deck } from './lib/slides/api.mjs';
 import { slideToSvg } from './lib/rasterizer/svg-builder.mjs';
 import { svgToPng } from './lib/rasterizer/deck-rasterizer.mjs';
 import { resolveFonts } from './lib/rasterizer/font-resolver.mjs';
@@ -17,10 +17,10 @@ import {
   createFromTemplate,
   listTemplateLayouts,
   publishTemplateDraft,
-} from './lib/template-deck.mjs';
-import { nid, ov, removeNode } from './lib/node-helpers.mjs';
-import { imageOv, hashToHex } from './lib/image-helpers.mjs';
-import { deepClone } from './lib/deep-clone.mjs';
+} from './lib/slides/template-deck.mjs';
+import { nid, ov, removeNode } from './lib/core/node-helpers.mjs';
+import { imageOv, hashToHex } from './lib/core/image-helpers.mjs';
+import { deepClone } from './lib/core/deep-clone.mjs';
 
 const server = new McpServer({
   name: 'figmatk',

@@ -25,10 +25,11 @@ same kiwi schema + zstd pipeline.
 
 | Layer | Path | Format-agnostic? | Description |
 |-------|------|-------------------|-------------|
-| Binary codec | `lib/fig-deck.mjs` | Yes | Kiwi schema, zstd, node tree, blobs |
-| Node helpers | `lib/node-helpers.mjs` | Yes | GUIDs, tree traversal, `nid()` |
-| Image helpers | `lib/image-helpers.mjs` | Yes | SHA-1 hashing, thumbnails |
-| High-level API | `lib/api.mjs` | Slides-only | `Deck`, `Slide`, `Symbol`, `TextNode`, `ImageNode` |
+| Binary codec | `lib/core/fig-deck.mjs` | Yes | Kiwi schema, zstd, node tree, blobs |
+| Node helpers | `lib/core/node-helpers.mjs` | Yes | GUIDs, tree traversal, `nid()` |
+| Image helpers | `lib/core/image-helpers.mjs` | Yes | SHA-1 hashing, thumbnails |
+| High-level API | `lib/slides/api.mjs` | Slides-only | `Deck`, `Slide`, `Symbol`, `TextNode`, `ImageNode` |
+| Templates | `lib/slides/template-deck.mjs` | Slides-only | Template inspection, authoring, instantiation |
 | Rasterizer | `lib/rasterizer/` | Yes | SVG generation + PNG rendering |
 | CLI commands | `commands/` | Slides-only | inspect, update-text, clone-slide, etc. |
 | MCP server | `mcp-server.mjs` | Slides-only | Tool server for AI assistants |
@@ -46,7 +47,8 @@ When adding `.fig` support, build parallel high-level classes (e.g. `FigFile`,
 ## Key directories
 
 ```
-lib/                    Core library (ES modules, .mjs)
+lib/core/               Shared codec, helpers (format-agnostic)
+lib/slides/             Slides-specific API, templates (.deck)
 lib/rasterizer/         SVG builder + PNG renderer + font resolution
 commands/               CLI command implementations
 decks/reference/        Ground-truth decks from Figma (for format learning + SSIM tests)

@@ -8,11 +8,11 @@
     "figmatk-mcp": "mcp-server.mjs"
   },
   "exports": {
-    ".": "./lib/api.mjs",
-    "./deck": "./lib/fig-deck.mjs",
-    "./node-helpers": "./lib/node-helpers.mjs",
-    "./image-helpers": "./lib/image-helpers.mjs",
-    "./deep-clone": "./lib/deep-clone.mjs"
+    ".": "./lib/slides/api.mjs",
+    "./deck": "./lib/core/fig-deck.mjs",
+    "./node-helpers": "./lib/core/node-helpers.mjs",
+    "./image-helpers": "./lib/core/image-helpers.mjs",
+    "./deep-clone": "./lib/core/deep-clone.mjs"
   },
   "files": [
     "cli.mjs",
