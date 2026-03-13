@@ -7,7 +7,7 @@ description: >
   order. Do not use this skill to author reusable templates themselves.
   Powered by FigmaTK under the hood.
 metadata:
-  version: "0.3.2"
+  version: "0.3.3"
 ---
 
 # Figma Slides Creator
