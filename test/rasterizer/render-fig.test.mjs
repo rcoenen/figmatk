@@ -22,6 +22,9 @@ const REPORT_OUT = '/private/tmp/figmatk-render-report-fig.html';
 const FIG_PATH = join(__dirname, '../../figs/reference/medium-complex.fig');
 const FIG_REF  = join(__dirname, '../../figs/reference/medium-complex');
 
+const CLIP_TEST_PATH = join(__dirname, '../../figs/reference/clip-test.fig');
+const CLIP_TEST_REF  = join(__dirname, '../../figs/reference/clip-test');
+
 const reportRows = [];
 
 describe('medium-complex.fig frame rendering', () => {
@@ -51,7 +54,7 @@ describe('medium-complex.fig frame rendering', () => {
       expect(frameNode).toBeTruthy();
 
       const svg = frameToSvg(fig, frameNode);
-      const png = await svgToPng(svg, {});
+      const png = await svgToPng(svg, { background: 'rgba(0,0,0,0)' });
       const pngBuf = Buffer.from(png);
       const slug = `${page}-${frame}`.replace(/\s+/g, '_').toLowerCase();
       const outPath = join('/tmp', `figmatk-test-fig-${slug}.png`);
@@ -69,6 +72,33 @@ describe('medium-complex.fig frame rendering', () => {
         reportRows.push(await buildReportRow({ slideNumber: `fig:${frame}`, renderedPng: pngBuf, refPath: null }));
         console.log(`  ${page}/${frame}  (no ref)  →  ${outPath}`);
       }
+    });
+  }
+});
+
+describe('clip-test.fig frame clipping', () => {
+  const clipFrames = [
+    { frame: 'clip_on', ref: 'clip_on.png', minSsim: 0.99 },
+    { frame: 'clip_off', ref: 'clip_off.png', minSsim: 0.85 },
+  ];
+
+  for (const { frame, ref, minSsim } of clipFrames) {
+    it(`${frame} SSIM ≥ ${minSsim}`, async () => {
+      const fig = await FigDeck.fromDeckFile(CLIP_TEST_PATH);
+      const page = fig.getPages()[0];
+      const frameNode = fig.getChildren(nid(page))
+        .filter(c => c.phase !== 'REMOVED' && c.type === 'FRAME')
+        .find(c => c.name === frame);
+      expect(frameNode).toBeTruthy();
+
+      const svg = frameToSvg(fig, frameNode);
+      const png = await svgToPng(svg, { background: 'rgba(0,0,0,0)' });
+      const pngBuf = Buffer.from(png);
+      const refPath = join(CLIP_TEST_REF, ref);
+      const score = await computeSsim(pngBuf, refPath);
+      reportRows.push(await buildReportRow({ slideNumber: `clip:${frame}`, renderedPng: pngBuf, refPath, score }));
+      console.log(`  ${frame}  SSIM=${score.toFixed(4)}`);
+      expect(score).toBeGreaterThanOrEqual(minSsim);
     });
   }
 });
