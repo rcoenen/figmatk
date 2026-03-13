@@ -13,7 +13,8 @@ import { writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { FigDeck } from '../../lib/core/fig-deck.mjs';
-import { slideToSvg } from '../../lib/rasterizer/svg-builder.mjs';
+import { slideToSvg, frameToSvg } from '../../lib/rasterizer/svg-builder.mjs';
+import { nid } from '../../lib/core/node-helpers.mjs';
 import { svgToPng } from '../../lib/rasterizer/deck-rasterizer.mjs';
 import { buildReportRow, writeRenderReport, computeSsim } from '../../lib/rasterizer/render-report-lib.mjs';
 
@@ -44,6 +45,9 @@ const SVG_REF  = join(__dirname, '../../decks/reference/svg-deck');
 
 const FOUR_TEXT_COL_DECK = join(__dirname, '../../decks/reference/4-text-column.deck');
 const FOUR_TEXT_COL_REF  = join(__dirname, '../../decks/reference/4-text-column');
+
+const FIG_PATH = join(__dirname, '../../figs/reference/medium-complex.fig');
+const FIG_REF  = join(__dirname, '../../figs/reference/medium-complex');
 
 /** Render a slide to PNG bytes at native 1920×1080. */
 async function renderSlide(deck, slide) {
@@ -151,6 +155,58 @@ describe('4-text-column deck rendering', () => {
     // 4-text-column: four numbered columns + rotated coat-of-arms seal backdrop.
     expect(score).toBeGreaterThanOrEqual(0.90);
   });
+});
+
+// ── .fig Design file frame rendering ──────────────────────────────────────────
+
+describe('medium-complex.fig frame rendering', () => {
+  let fd;
+
+  it('loads .fig file', async () => {
+    fd = await FigDeck.fromDeckFile(FIG_PATH);
+    expect(fd.getPages().length).toBe(3);
+  });
+
+  // Render every FRAME on every user-facing page
+  const expectedFrames = [
+    { page: 'Great Seal Page', frame: 'GreatSeal' },
+    { page: 'Page 2', frame: 'how-to' },
+    { page: 'Page 2', frame: 'Lady' },
+    { page: 'Page 3', frame: 'User Bio' },
+    { page: 'Page 3', frame: 'bike lady' },
+  ];
+
+  for (const { page, frame } of expectedFrames) {
+    it(`${page} / ${frame} renders`, async () => {
+      if (!fd) fd = await FigDeck.fromDeckFile(FIG_PATH);
+
+      const pageNode = fd.getPages().find(p => p.name === page);
+      const frameNode = fd.getChildren(nid(pageNode))
+        .filter(c => c.phase !== 'REMOVED' && c.type === 'FRAME')
+        .find(c => c.name === frame);
+      expect(frameNode).toBeTruthy();
+
+      const svg = frameToSvg(fd, frameNode);
+      const png = await svgToPng(svg, {});
+      const pngBuf = Buffer.from(png);
+      const slug = `${page}-${frame}`.replace(/\s+/g, '_').toLowerCase();
+      const outPath = join('/tmp', `figmatk-test-fig-${slug}.png`);
+      writeFileSync(outPath, pngBuf);
+
+      const refPath = join(FIG_REF, `${slug}.png`);
+      if (existsSync(refPath)) {
+        const score = await computeSsim(pngBuf, refPath);
+        reportRows.push(await buildReportRow({ slideNumber: `fig:${frame}`, renderedPng: pngBuf, refPath, score }));
+        console.log(`  ${page}/${frame}  SSIM=${score.toFixed(4)}  →  ${outPath}`);
+        // Low threshold for now — .fig reference exports may differ in size/crop
+        expect(score).toBeGreaterThanOrEqual(0.50);
+      } else {
+        // No reference yet — just include in report for visual review
+        reportRows.push(await buildReportRow({ slideNumber: `fig:${frame}`, renderedPng: pngBuf, refPath: null }));
+        console.log(`  ${page}/${frame}  (no ref)  →  ${outPath}`);
+      }
+    });
+  }
 });
 
 afterAll(() => {

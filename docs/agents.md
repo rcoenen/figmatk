@@ -72,6 +72,27 @@ test/                   Vitest test suites
 Unknown format features must go through this loop before implementing. Never guess
 at undocumented format behavior.
 
+## Code conventions
+
+### Parameter naming
+
+- `deck` — Slides-specific (.deck), expects SLIDE nodes, 1920×1080 viewport
+- `fig` — format-agnostic, works with any Figma file (.deck or .fig)
+- Internal shared functions use `deck` for historical reasons — they are format-agnostic despite the name
+
+### Module boundaries
+
+- `lib/core/` — shared codec + helpers. Never imports from `lib/slides/`
+- `lib/slides/` — Slides product layer. May import from `lib/core/`
+- `lib/rasterizer/` — shared renderer. May import from `lib/core/`, never from `lib/slides/`
+- `commands/` — CLI. May import from `lib/core/` and `lib/slides/`
+
+### File naming
+
+- `.mjs` — all lib files are ES modules
+- `.deck` — Figma Slides archive (ZIP containing canvas.fig)
+- `.fig` — Figma Design archive (same ZIP structure, different prelude)
+
 ## Access is 1-indexed
 
 ```javascript
