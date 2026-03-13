@@ -23,7 +23,8 @@ To let the user view the result: tell them to **open the file in Figma Desktop**
 
 | Task | Approach |
 |------|----------|
-| Create a new deck from scratch | **`figmatk_create_deck` MCP tool** — no npm install needed |
+| Create from scratch | **Path A** — `figmatk_create_deck` MCP tool |
+| Create from a `.deck` template | **Path B** — `figmatk_list_template_layouts` + `figmatk_create_from_template` |
 | Edit text or images in an existing deck | `figmatk_update_text`, `figmatk_insert_image` |
 | Clone, remove, or restructure slides | `figmatk_clone_slide`, `figmatk_remove_slide` |
 | Inspect structure or read content | `figmatk_inspect`, `figmatk_list_text` |
@@ -36,7 +37,45 @@ To let the user view the result: tell them to **open the file in Figma Desktop**
 
 ---
 
-## Path A — Create from Scratch (MCP tool — preferred)
+## Path B — Create from a Template (preferred when user provides a .deck file)
+
+Use this path when the user provides a `.deck` template file. The output deck inherits all fonts, colors, spacing, and visual design from the template verbatim.
+
+### Step 1 — Inspect the template
+
+```
+figmatk_list_template_layouts("/path/to/template.deck")
+```
+
+Returns a catalog of all available slide layouts. Each entry includes:
+- `slideId` — the ID to reference this layout
+- Text fields — editable TEXT nodes with their names and current content
+- Image placeholders — FRAME nodes with IMAGE fill (these need a real image)
+
+**Read the catalog carefully before picking layouts:**
+- Match each slide's purpose to your content (the existing text in the template is a strong hint — e.g. "Use this slide to introduce the big problem" → use for your problem statement)
+- Slides with image placeholders need an appropriate image — the surrounding text should describe what's shown in that image
+- Slides with `SHAPE_WITH_TEXT` pill labels (MONTH XX YEAR, TAGLINE, CONFIDENTIAL) cannot be changed programmatically — tell the user to update those in Figma
+
+### Step 2 — Create the deck
+
+```
+figmatk_create_from_template({
+  template: "/path/to/template.deck",
+  output: "/tmp/my-deck.deck",
+  slides: [
+    { slideId: "1:74",  text: { "Title": "My Company" } },
+    { slideId: "1:112", text: { "Header 1": "The problem.", "Body 1": "Description here." } },
+    { slideId: "1:643", text: { "Thank you": "Thank you!" } }
+  ]
+})
+```
+
+Only pass text fields that exist in the layout's catalog — extra fields are silently ignored.
+
+---
+
+## Path A — Create from Scratch (MCP tool — no template)
 
 **Always use this path.** No npm install, no scripts, no workspace setup.
 
