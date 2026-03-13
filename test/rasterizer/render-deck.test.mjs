@@ -1,11 +1,9 @@
 /**
- * Render quality tests: compare rendered slides against Figma reference PNGs
- * using SSIM (Structural Similarity Index). Scores range 0–1; 1 = identical.
+ * .deck (Figma Slides) render quality tests — compare rendered slides against
+ * Figma reference PNGs using SSIM (Structural Similarity Index).
  *
- * Reference: decks/reference/oil-machinations/ (page-N.png, 4000×2250, 2× Figma export)
- * Render size: 1920×1080 — reference is downscaled to match before comparison.
- *
- * Run: npm test
+ * Fixtures:  decks/reference/
+ * Report:    /tmp/figmatk-render-report-deck.html
  */
 
 import { describe, it, expect, afterAll } from 'vitest';
@@ -13,18 +11,26 @@ import { writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { FigDeck } from '../../lib/core/fig-deck.mjs';
-import { slideToSvg, frameToSvg } from '../../lib/rasterizer/svg-builder.mjs';
-import { nid } from '../../lib/core/node-helpers.mjs';
+import { slideToSvg } from '../../lib/rasterizer/svg-builder.mjs';
 import { svgToPng } from '../../lib/rasterizer/deck-rasterizer.mjs';
 import { buildReportRow, writeRenderReport, computeSsim } from '../../lib/rasterizer/render-report-lib.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const REPORT_OUT = '/private/tmp/figmatk-render-report-deck.html';
+
 const DECK_PATH   = join(__dirname, '../../decks/reference/oil-machinations.deck');
 const REF_DIR     = join(__dirname, '../../decks/reference/oil-machinations');
-const REPORT_OUT   = '/private/tmp/figmatk-render-report.html';
+
+const JUST_FONTS_DECK = join(__dirname, '../../decks/reference/just-fonts.deck');
+const JUST_FONTS_REF  = join(__dirname, '../../decks/reference/just-fonts');
+
+const SVG_DECK = join(__dirname, '../../decks/reference/svg-deck.deck');
+const SVG_REF  = join(__dirname, '../../decks/reference/svg-deck');
+
+const FOUR_TEXT_COL_DECK = join(__dirname, '../../decks/reference/4-text-column.deck');
+const FOUR_TEXT_COL_REF  = join(__dirname, '../../decks/reference/4-text-column');
 
 // Per-slide minimum SSIM thresholds — set just below current scores as regression guard.
-// Raise each threshold as rendering improves (these are deliberate quality targets).
 //   Slide 2: 0.83 — lowest; unresolved elements
 //   Slide 6: 0.88 — card text overflows bounds; label pill colors wrong
 const SSIM_THRESHOLDS = {
@@ -37,19 +43,6 @@ const SSIM_THRESHOLDS = {
   7: 0.98,
 };
 
-const JUST_FONTS_DECK = join(__dirname, '../../decks/reference/just-fonts.deck');
-const JUST_FONTS_REF  = join(__dirname, '../../decks/reference/just-fonts');
-
-const SVG_DECK = join(__dirname, '../../decks/reference/svg-deck.deck');
-const SVG_REF  = join(__dirname, '../../decks/reference/svg-deck');
-
-const FOUR_TEXT_COL_DECK = join(__dirname, '../../decks/reference/4-text-column.deck');
-const FOUR_TEXT_COL_REF  = join(__dirname, '../../decks/reference/4-text-column');
-
-const FIG_PATH = join(__dirname, '../../figs/reference/medium-complex.fig');
-const FIG_REF  = join(__dirname, '../../figs/reference/medium-complex');
-
-/** Render a slide to PNG bytes at native 1920×1080. */
 async function renderSlide(deck, slide) {
   const svg = slideToSvg(deck, slide);
   return svgToPng(svg, {});
@@ -60,9 +53,8 @@ const reportRows = [];
 describe('oil-machinations deck rendering', () => {
   let deck;
 
-  // Load deck once before all tests
   it('loads deck successfully', async () => {
-    deck   = await FigDeck.fromDeckFile(DECK_PATH);
+    deck = await FigDeck.fromDeckFile(DECK_PATH);
     expect(deck.getActiveSlides().length).toBe(7);
   });
 
@@ -70,8 +62,8 @@ describe('oil-machinations deck rendering', () => {
     it(`slide ${i} SSIM ≥ ${SSIM_THRESHOLDS[i] ?? 0.70}`, async () => {
       if (!deck) deck = await FigDeck.fromDeckFile(DECK_PATH);
 
-      const slide    = deck.getSlide(i);
-      const refPath  = join(REF_DIR, `page-${i}.png`);
+      const slide   = deck.getSlide(i);
+      const refPath = join(REF_DIR, `page-${i}.png`);
 
       if (!existsSync(refPath)) {
         console.warn(`  ⚠ Reference missing: ${refPath} — skipping`);
@@ -81,7 +73,6 @@ describe('oil-machinations deck rendering', () => {
       const png   = await renderSlide(deck, slide);
       const score = await computeSsim(Buffer.from(png), refPath);
 
-      // Save render for manual inspection
       const outPath = join('/tmp', `figmatk-test-slide-${i}.png`);
       writeFileSync(outPath, Buffer.from(png));
       reportRows.push(await buildReportRow({ slideNumber: i, renderedPng: Buffer.from(png), refPath, score }));
@@ -152,65 +143,12 @@ describe('4-text-column deck rendering', () => {
     const score = await computeSsim(Buffer.from(png), refPath);
     reportRows.push(await buildReportRow({ slideNumber: '4textcol-1', renderedPng: Buffer.from(png), refPath, score }));
     console.log(`  slide 1  SSIM=${score.toFixed(4)}  →  ${outPath}`);
-    // 4-text-column: four numbered columns + rotated coat-of-arms seal backdrop.
     expect(score).toBeGreaterThanOrEqual(0.90);
   });
 });
 
-// ── .fig Design file frame rendering ──────────────────────────────────────────
-
-describe('medium-complex.fig frame rendering', () => {
-  let fd;
-
-  it('loads .fig file', async () => {
-    fd = await FigDeck.fromDeckFile(FIG_PATH);
-    expect(fd.getPages().length).toBe(3);
-  });
-
-  // Render every FRAME on every user-facing page
-  const expectedFrames = [
-    { page: 'Great Seal Page', frame: 'GreatSeal' },
-    { page: 'Page 2', frame: 'how-to' },
-    { page: 'Page 2', frame: 'Lady' },
-    { page: 'Page 3', frame: 'User Bio' },
-    { page: 'Page 3', frame: 'bike lady' },
-  ];
-
-  for (const { page, frame } of expectedFrames) {
-    it(`${page} / ${frame} renders`, async () => {
-      if (!fd) fd = await FigDeck.fromDeckFile(FIG_PATH);
-
-      const pageNode = fd.getPages().find(p => p.name === page);
-      const frameNode = fd.getChildren(nid(pageNode))
-        .filter(c => c.phase !== 'REMOVED' && c.type === 'FRAME')
-        .find(c => c.name === frame);
-      expect(frameNode).toBeTruthy();
-
-      const svg = frameToSvg(fd, frameNode);
-      const png = await svgToPng(svg, {});
-      const pngBuf = Buffer.from(png);
-      const slug = `${page}-${frame}`.replace(/\s+/g, '_').toLowerCase();
-      const outPath = join('/tmp', `figmatk-test-fig-${slug}.png`);
-      writeFileSync(outPath, pngBuf);
-
-      const refPath = join(FIG_REF, `${slug}.png`);
-      if (existsSync(refPath)) {
-        const score = await computeSsim(pngBuf, refPath);
-        reportRows.push(await buildReportRow({ slideNumber: `fig:${frame}`, renderedPng: pngBuf, refPath, score }));
-        console.log(`  ${page}/${frame}  SSIM=${score.toFixed(4)}  →  ${outPath}`);
-        // Low threshold for now — .fig reference exports may differ in size/crop
-        expect(score).toBeGreaterThanOrEqual(0.50);
-      } else {
-        // No reference yet — just include in report for visual review
-        reportRows.push(await buildReportRow({ slideNumber: `fig:${frame}`, renderedPng: pngBuf, refPath: null }));
-        console.log(`  ${page}/${frame}  (no ref)  →  ${outPath}`);
-      }
-    });
-  }
-});
-
 afterAll(() => {
   if (!reportRows.length) return;
-  writeRenderReport({ outHtml: REPORT_OUT, rows: reportRows, title: 'FigmaTK Render Report' });
+  writeRenderReport({ outHtml: REPORT_OUT, rows: reportRows, title: 'FigmaTK Deck Render Report' });
   console.log(`\nReport → ${REPORT_OUT}`);
 });
