@@ -4,10 +4,10 @@ Swiss-army knife CLI for Figma `.deck` and `.fig` files. Parse, inspect, modify,
 
 ## Figma File Formats
 
-Each Figma product has its own native file format:
+Each Figma product has its own native file format. Active development — status may change:
 
-| Product | Extension | Supported |
-|---------|-----------|-----------|
+| Product | Extension | Status |
+|---------|-----------|--------|
 | Figma Slides | `.deck` | ✅ |
 | Figma Design | `.fig` | 🔶 read-only |
 | Figma Jam (whiteboard) | `.jam` | ❌ not yet |
