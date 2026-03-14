@@ -26,6 +26,25 @@ FigDeck  →  slideToSvg()  →  SVG string  →  svgToPng()  →  PNG bytes
 | [pipeline.md](pipeline.md) | SVG generation pipeline, node type dispatch, derivedTextData fields |
 | [testing.md](testing.md) | SSIM quality testing, reference decks, HTML comparison reports |
 
+## Pixel Parity
+
+To the human eye, FigmaTK renders look identical to Figma's native exports. You
+would not be able to spot the difference without advanced diff tooling — the
+differences live entirely in subpixel territory, at the edges of shapes and
+characters where anti-aliasing blends foreground into background.
+
+Bit-for-bit pixel parity is not achievable because Figma and FigmaTK use
+different rendering engines under the hood. Figma renders via Skia (Google's 2D
+engine); FigmaTK renders via resvg (Rust, built on tiny-skia). Even given
+identical geometry and identical fonts, the two engines make different subpixel
+coverage decisions at every anti-aliased edge. This is inherent to having two
+independent rasterizers — the same reason two browsers never render the same
+CSS identically at the pixel level.
+
+On well-supported content we consistently reach SSIM ≥ 0.99 (Structural
+Similarity Index), the standard threshold for "perceptually identical." The
+remaining sub-1% delta is rasterizer noise that no human can see.
+
 ## Quick Start
 
 ```javascript

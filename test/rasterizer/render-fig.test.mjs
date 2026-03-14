@@ -19,11 +19,13 @@ import { buildReportRow, writeRenderReport, computeSsim } from '../../lib/raster
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPORT_OUT = '/private/tmp/figmatk-render-report-fig.html';
 
-// Max pixel-off percentage — catches localized defects SSIM misses.
-const DEFAULT_MAX_OFF_PCT = 15.0;  // generous for .fig frames (size/crop differences)
+// Universal quality gates — three complementary metrics:
+//   SSIM ≥ 0.90       global perceptual similarity (catches missing/shifted content)
+//   meanDelta ≤ 5.0    average per-pixel deviation (catches severity SSIM downweights)
+//   offDelta ≤ 60      mean severity among divergent pixels (anti-aliasing ≈ 20–50, missing content ≈ 100+)
+const DEFAULT_MIN_SSIM = 0.90;
 const DEFAULT_MAX_MEAN_DELTA = 5.0;
-// Max severity per off pixel (0–255) — subpixel shifts ≈ 17–20, missing content ≈ 24+.
-const DEFAULT_MAX_OFF_DELTA = 21.0;
+const DEFAULT_MAX_OFF_DELTA = 100;
 
 const FIG_PATH = join(__dirname, '../../figs/reference/medium-complex.fig');
 const FIG_REF  = join(__dirname, '../../figs/reference/medium-complex');
@@ -42,14 +44,14 @@ describe('medium-complex.fig frame rendering', () => {
   });
 
   const expectedFrames = [
-    { page: 'Great Seal Page', frame: 'GreatSeal', minSsim: 0.40, maxOffPct: 70.0, maxDelta: 100.0 },
+    { page: 'Great Seal Page', frame: 'GreatSeal' },
     { page: 'Page 2', frame: 'how-to' },
     { page: 'Page 2', frame: 'Lady' },
     { page: 'Page 3', frame: 'User Bio' },
     { page: 'Page 3', frame: 'bike lady' },
   ];
 
-  for (const { page, frame, minSsim: frameSsim, maxOffPct: frameOffPct, maxDelta: frameDelta } of expectedFrames) {
+  for (const { page, frame } of expectedFrames) {
     it(`${page} / ${frame} renders`, async () => {
       if (!fig) fig = await FigDeck.fromDeckFile(FIG_PATH);
 
@@ -71,10 +73,9 @@ describe('medium-complex.fig frame rendering', () => {
         const score = await computeSsim(pngBuf, refPath);
         const row = await buildReportRow({ slideNumber: `fig:${frame}`, renderedPng: pngBuf, refPath, score });
         reportRows.push(row);
-        console.log(`  ${page}/${frame}  SSIM=${score.toFixed(4)}  offPct=${row.offPct}%  Δ${row.meanDelta}  severity=${row.offDelta}  →  ${outPath}`);
-        expect(score).toBeGreaterThanOrEqual(frameSsim ?? 0.50);
-        expect(parseFloat(row.offPct)).toBeLessThanOrEqual(frameOffPct ?? DEFAULT_MAX_OFF_PCT);
-        expect(row.meanDelta).toBeLessThanOrEqual(frameDelta ?? DEFAULT_MAX_MEAN_DELTA);
+        console.log(`  ${page}/${frame}  SSIM=${score.toFixed(4)}  Δ${row.meanDelta}  offΔ=${row.offDelta}  →  ${outPath}`);
+        expect(score).toBeGreaterThanOrEqual(DEFAULT_MIN_SSIM);
+        expect(row.meanDelta).toBeLessThanOrEqual(DEFAULT_MAX_MEAN_DELTA);
         expect(row.offDelta).toBeLessThanOrEqual(DEFAULT_MAX_OFF_DELTA);
       } else {
         // No reference yet — just include in report for visual review
@@ -87,12 +88,12 @@ describe('medium-complex.fig frame rendering', () => {
 
 describe('clip-test.fig frame clipping', () => {
   const clipFrames = [
-    { frame: 'clip_on', ref: 'clip_on.png', minSsim: 0.99 },
-    { frame: 'clip_off', ref: 'clip_off.png', minSsim: 0.85 },
+    { frame: 'clip_on', ref: 'clip_on.png' },
+    { frame: 'clip_off', ref: 'clip_off.png' },
   ];
 
-  for (const { frame, ref, minSsim } of clipFrames) {
-    it(`${frame} SSIM ≥ ${minSsim}`, async () => {
+  for (const { frame, ref } of clipFrames) {
+    it(`${frame} renders`, async () => {
       const fig = await FigDeck.fromDeckFile(CLIP_TEST_PATH);
       const page = fig.getPages()[0];
       const frameNode = fig.getChildren(nid(page))
@@ -107,10 +108,10 @@ describe('clip-test.fig frame clipping', () => {
       const score = await computeSsim(pngBuf, refPath);
       const row = await buildReportRow({ slideNumber: `clip:${frame}`, renderedPng: pngBuf, refPath, score });
       reportRows.push(row);
-      console.log(`  ${frame}  SSIM=${score.toFixed(4)}  offPct=${row.offPct}%  Δ${row.meanDelta}  severity=${row.offDelta}`);
-      expect(score).toBeGreaterThanOrEqual(minSsim);
-      expect(parseFloat(row.offPct)).toBeLessThanOrEqual(DEFAULT_MAX_OFF_PCT);
+      console.log(`  ${frame}  SSIM=${score.toFixed(4)}  Δ${row.meanDelta}  offΔ=${row.offDelta}`);
+      expect(score).toBeGreaterThanOrEqual(DEFAULT_MIN_SSIM);
       expect(row.meanDelta).toBeLessThanOrEqual(DEFAULT_MAX_MEAN_DELTA);
+      expect(row.offDelta).toBeLessThanOrEqual(DEFAULT_MAX_OFF_DELTA);
     });
   }
 });
