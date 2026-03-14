@@ -54,7 +54,7 @@ npm test                    # all tests
 npx vitest run render.test  # just the SSIM tests
 ```
 
-Rendered PNGs are saved to `/tmp/figmatk-test-slide-N.png` for manual inspection.
+Rendered PNGs are saved to `/tmp/openfig-test-slide-N.png` for manual inspection.
 
 ## HTML Comparison Reports
 
@@ -68,7 +68,7 @@ node lib/rasterizer/render-report.mjs
 node lib/rasterizer/render-report.mjs \
   decks/reference/just-fonts.deck \
   decks/reference/just-fonts \
-  /tmp/figmatk-render-report-just-fonts.html
+  /tmp/openfig-render-report-just-fonts.html
 
 # Custom deck
 node lib/rasterizer/render-report.mjs path/to.deck path/to/refs/ /tmp/report.html
@@ -77,7 +77,7 @@ node lib/rasterizer/render-report.mjs path/to.deck path/to/refs/ /tmp/report.htm
 Reports show three columns per slide:
 
 1. **Reference** — Figma export (ground truth)
-2. **FigmaTK Render** — our SVG→PNG output
+2. **OpenFig Render** — our SVG→PNG output
 3. **Overlay** — pre-composited difference image: `ref * 0.5 + inverted_render * 0.5`
 
 The overlay makes missing or mispositioned elements glow — any difference from
@@ -91,7 +91,7 @@ All images are click-to-zoom for close-up inspection.
 CSS canvas compositing. This avoids `file://` CORS restrictions that prevent
 `canvas.toDataURL()` from working on local HTML files.
 
-Open in browser: `file:///tmp/figmatk-render-report.html`
+Open in browser: `file:///tmp/openfig-render-report.html`
 
 ## Adding a New Reference Deck
 

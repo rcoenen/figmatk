@@ -1,7 +1,7 @@
 # python-pptx Feature Reference
 
-Used as a design reference for the figmatk programmatic API.
-Each feature listed here is a candidate for an equivalent in figmatk's `Deck` / `Slide` API.
+Used as a design reference for the openfig programmatic API.
+Each feature listed here is a candidate for an equivalent in openfig's `Deck` / `Slide` API.
 
 ---
 

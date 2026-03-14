@@ -9,7 +9,7 @@ The system SHALL package the Claude Desktop/Cowork extension as an MCPB bundle w
 - **WHEN** a maintainer runs the project pack flow for Claude Desktop/Cowork distribution
 - **THEN** the output artifact is an `.mcpb` bundle
 - **AND** the bundle contains a valid `manifest.json`
-- **AND** the bundle includes the local MCP server entry point required to run figmatk inside Claude
+- **AND** the bundle includes the local MCP server entry point required to run openfig inside Claude
 
 ### Requirement: Separate npm and Claude Distribution Metadata
 
@@ -38,6 +38,6 @@ The system SHALL preserve a local manual MCP development path while moving end-u
 
 #### Scenario: Develop against the local MCP server
 
-- **WHEN** a contributor wants to run the figmatk MCP server locally without installing a packaged extension
+- **WHEN** a contributor wants to run the openfig MCP server locally without installing a packaged extension
 - **THEN** the repository still provides a documented local-development path
 - **AND** that path does not require the contributor to unpack or modify the distributed `.mcpb` artifact

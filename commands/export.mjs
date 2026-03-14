@@ -2,7 +2,7 @@
  * export — Export slides from a .deck file to images.
  *
  * Usage:
- *   figmatk export <file.deck> [options]
+ *   openfig export <file.deck> [options]
  *
  * Options:
  *   -o <dir>        Output directory (default: <deckname>/)
@@ -34,7 +34,7 @@ async function confirmOverwrite(dir) {
 export async function run(args, flags) {
   const file = args[0];
   if (!file) {
-    console.error('Usage: figmatk export <file.deck> [options]\n');
+    console.error('Usage: openfig export <file.deck> [options]\n');
     console.error('Options:');
     console.error('  -o <dir>        Output directory (default: <deckname>/)');
     console.error('  --slide <n>     Export only slide N (1-based)');

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * figmatk release script
+ * OpenFig release script
  * Usage: node scripts/release.mjs [patch|minor|major]
  * Bumps npm + MCPB versions in sync, publishes to npm, pushes to GitHub.
  */
@@ -48,6 +48,6 @@ run(`git tag v${version}`);
 run(`git push && git push --tags`);
 
 // 6. Update local global install
-run(`npm install -g figmatk`);
+run(`npm install -g openfig`);
 
-console.log(`\n✅ Released figmatk v${version}\n`);
+console.log(`\n✅ Released openfig v${version}\n`);

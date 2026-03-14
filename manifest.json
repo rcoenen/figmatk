@@ -1,10 +1,10 @@
 {
   "manifest_version": "0.2",
-  "name": "figmatk",
+  "name": "openfig",
   "version": "0.3.11",
-  "description": "Create and edit Figma Slides .deck files programmatically - no Figma API required",
+  "description": "Open-source tools for parsing and rendering Figma design files",
   "author": {
-    "name": "FigmaTK Contributors"
+    "name": "OpenFig Contributors"
   },
   "server": {
     "type": "node",

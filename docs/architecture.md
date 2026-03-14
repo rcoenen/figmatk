@@ -1,6 +1,6 @@
 # Architecture: Multi-Product Support
 
-figmatk mirrors Figma's product family. Each product has its own file format but
+openfig mirrors Figma's product family. Each product has its own file format but
 they share a common binary codec and rendering pipeline.
 
 ## Figma Product Family
@@ -156,8 +156,8 @@ This refactor is NOT needed now. When `.fig` support is added:
 3. **Create `lib/design/`** — File, Page, Component classes using the shared core
 4. **Rename `FigDeck`** → `FigmaCodec` (or keep `FigDeck` as a Slides-specific
    subclass that adds ZIP handling)
-5. **Update exports** in package.json — `figmatk/slides`, `figmatk/design`,
-   `figmatk/core`
+5. **Update exports** in package.json — `openfig/slides`, `openfig/design`,
+   `openfig/core`
 
 The rasterizer needs zero changes — it already works on any node tree.
 
@@ -165,14 +165,14 @@ The rasterizer needs zero changes — it already works on any node tree.
 
 ```javascript
 // Slides (current primary use case)
-import { Deck, Slide } from 'figmatk/slides';
+import { Deck, Slide } from 'openfig/slides';
 
 // Design (future)
-import { File, Page } from 'figmatk/design';
+import { File, Page } from 'openfig/design';
 
 // Shared rendering
-import { SVGRenderer, PNGRenderer } from 'figmatk/rasterizer';
+import { SVGRenderer, PNGRenderer } from 'openfig/rasterizer';
 
 // Low-level codec (for advanced use)
-import { FigmaCodec } from 'figmatk/core';
+import { FigmaCodec } from 'openfig/core';
 ```

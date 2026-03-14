@@ -34,7 +34,7 @@ Pythonic API.
 ```
 python-figma-deck/
 ├── bridge/
-│   └── codec.js          # Node.js: decode/encode canvas.fig ↔ JSON (thin wrapper around figmatk logic)
+│   └── codec.js          # Node.js: decode/encode canvas.fig ↔ JSON (thin wrapper around openfig logic)
 ├── figma_deck/
 │   ├── _codec.py         # Subprocess bridge: call codec.js, marshal JSON
 │   ├── _io.py            # ZIP read/write, images/ dir management
@@ -120,7 +120,7 @@ of any `.deck` file. Inventory is stable across repeated opens of the same file.
 ### Phase 2 — Text Write
 
 **Goal:** Modify text content via `symbolOverrides`. This path is the most validated
-in the codebase — figmatk already does it reliably.
+in the codebase — openfig already does it reliably.
 
 **Deliverables:**
 ```python
@@ -143,7 +143,7 @@ fixture `.deck` files. Verify correct render in Figma for each.
 
 ### Phase 3 — Image Write
 
-**Goal:** Replace image fills on placeholder nodes. Also well-validated by figmatk.
+**Goal:** Replace image fills on placeholder nodes. Also well-validated by openfig.
 
 **Deliverables:**
 ```python

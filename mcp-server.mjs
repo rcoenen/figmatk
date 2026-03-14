@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * FigmaTK MCP Server — exposes deck manipulation as tools for Claude Cowork / Claude Code.
+ * OpenFig MCP Server — exposes deck manipulation as tools for Claude Cowork / Claude Code.
  */
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -23,13 +23,13 @@ import { imageOv, hashToHex } from './lib/core/image-helpers.mjs';
 import { deepClone } from './lib/core/deep-clone.mjs';
 
 const server = new McpServer({
-  name: 'figmatk',
+  name: 'openfig',
   version: packageJson.version,
 });
 
 // ── inspect ─────────────────────────────────────────────────────────────
 server.tool(
-  'figmatk_inspect',
+  'openfig_inspect',
   'Show the node hierarchy tree of a Figma .deck or .fig file',
   { path: z.string().describe('Path to .deck or .fig file') },
   async ({ path }) => {
@@ -55,7 +55,7 @@ server.tool(
 
 // ── list-text ───────────────────────────────────────────────────────────
 server.tool(
-  'figmatk_list_text',
+  'openfig_list_text',
   'List visible text and image content per slide in a .deck file, including direct slide nodes and instance overrides.',
   { path: z.string().describe('Path to .deck or .fig file') },
   async ({ path }) => {
@@ -112,7 +112,7 @@ server.tool(
 
 // ── list-overrides ──────────────────────────────────────────────────────
 server.tool(
-  'figmatk_list_overrides',
+  'openfig_list_overrides',
   'List editable override keys for each symbol in the deck',
   { path: z.string().describe('Path to .deck or .fig file') },
   async ({ path }) => {
@@ -143,7 +143,7 @@ server.tool(
 
 // ── update-text ─────────────────────────────────────────────────────────
 server.tool(
-  'figmatk_update_text',
+  'openfig_update_text',
   'Apply text overrides to a slide instance. Pass key=value pairs.',
   {
     path: z.string().describe('Path to .deck file'),
@@ -181,7 +181,7 @@ server.tool(
 
 // ── insert-image ────────────────────────────────────────────────────────
 server.tool(
-  'figmatk_insert_image',
+  'openfig_insert_image',
   'Apply an image fill override to a slide instance',
   {
     path: z.string().describe('Path to .deck file'),
@@ -223,7 +223,7 @@ server.tool(
 
 // ── clone-slide ─────────────────────────────────────────────────────────
 server.tool(
-  'figmatk_clone_slide',
+  'openfig_clone_slide',
   'Duplicate a slide from the deck',
   {
     path: z.string().describe('Path to .deck file'),
@@ -266,7 +266,7 @@ server.tool(
 
 // ── remove-slide ────────────────────────────────────────────────────────
 server.tool(
-  'figmatk_remove_slide',
+  'openfig_remove_slide',
   'Mark a slide as REMOVED',
   {
     path: z.string().describe('Path to .deck file'),
@@ -288,7 +288,7 @@ server.tool(
 
 // ── roundtrip ───────────────────────────────────────────────────────────
 server.tool(
-  'figmatk_roundtrip',
+  'openfig_roundtrip',
   'Decode and re-encode a .deck file to validate the pipeline',
   {
     path: z.string().describe('Path to input .deck file'),
@@ -326,7 +326,7 @@ const SlideSchema = z.object({
 });
 
 server.tool(
-  'figmatk_create_deck',
+  'openfig_create_deck',
   'Create a new Figma Slides .deck file from a structured description. No npm install needed — runs directly in the MCP server.',
   {
     output: z.string().describe('Output path for the .deck file, e.g. /tmp/my-deck.deck'),
@@ -390,9 +390,9 @@ server.tool(
   }
 );
 
-// ── figmatk_list_template_layouts ────────────────────────────────────────
+// ── openfig_list_template_layouts ────────────────────────────────────────
 server.tool(
-  'figmatk_create_template_draft',
+  'openfig_create_template_draft',
   'Create a new draft template deck. Draft templates are normal slide decks; later annotate slots and publish-wrap them into module-backed layouts.',
   {
     output: z.string().describe('Output path for the draft template .deck file'),
@@ -401,13 +401,13 @@ server.tool(
   },
   async ({ output, title, layouts }) => {
     const bytes = await createDraftTemplate(output, { title, layouts });
-    return { content: [{ type: 'text', text: `Created draft template ${output} (${bytes} bytes). Use figmatk_annotate_template_layout to mark layout and slot names.` }] };
+    return { content: [{ type: 'text', text: `Created draft template ${output} (${bytes} bytes). Use openfig_annotate_template_layout to mark layout and slot names.` }] };
   }
 );
 
 server.tool(
-  'figmatk_annotate_template_layout',
-  'Add explicit layout and slot metadata to a draft or published template. Use figmatk_inspect or figmatk_list_template_layouts first to get slide and node IDs.',
+  'openfig_annotate_template_layout',
+  'Add explicit layout and slot metadata to a draft or published template. Use openfig_inspect or openfig_list_template_layouts first to get slide and node IDs.',
   {
     path: z.string().describe('Path to the source .deck file'),
     output: z.string().describe('Output path for the updated .deck file'),
@@ -424,7 +424,7 @@ server.tool(
 );
 
 server.tool(
-  'figmatk_publish_template_draft',
+  'openfig_publish_template_draft',
   'Wrap draft template slides in publish-like MODULE nodes while preserving the slide subtree and internal canvas assets.',
   {
     path: z.string().describe('Path to the draft template .deck file'),
@@ -438,8 +438,8 @@ server.tool(
 );
 
 server.tool(
-  'figmatk_list_template_layouts',
-  'Inspect a template or draft template .deck file and return a layout library catalog with explicit text/image slot metadata. Use this to inventory candidate layouts, classify what each layout is for, and choose a subset before calling figmatk_create_from_template. Do not edit, remove, or reorder the source template as a way to build the output deck.',
+  'openfig_list_template_layouts',
+  'Inspect a template or draft template .deck file and return a layout library catalog with explicit text/image slot metadata. Use this to inventory candidate layouts, classify what each layout is for, and choose a subset before calling openfig_create_from_template. Do not edit, remove, or reorder the source template as a way to build the output deck.',
   {
     template: z.string().describe('Path to the .deck template file'),
   },
@@ -460,15 +460,15 @@ server.tool(
   }
 );
 
-// ── figmatk_create_from_template ─────────────────────────────────────────
+// ── openfig_create_from_template ─────────────────────────────────────────
 server.tool(
-  'figmatk_create_from_template',
+  'openfig_create_from_template',
   'Create a new Figma Slides deck by selecting any ordered subset of layouts from a draft, published, or publish-like template .deck file and populating explicit text/image slots. The slides array defines the output order. This clones the chosen layouts into a new deck; do not remove, reorder, or mutate the source template to build the result. Works with flat-frame template slides as well as module-backed layouts, and preserves colors, fonts, internal assets, and special nodes.',
   {
     template: z.string().describe('Path to the source .deck template file'),
     output:   z.string().describe('Output path for the new .deck file (use /tmp/)'),
     slides: z.array(z.object({
-      slideId: z.string().describe('Slide ID from figmatk_list_template_layouts (e.g. "1:74")'),
+      slideId: z.string().describe('Slide ID from openfig_list_template_layouts (e.g. "1:74")'),
       text:    z.record(z.string()).optional().describe('Map of text slot/name/nodeId -> value (e.g. { "title": "My Company" })'),
       images:  z.record(z.string()).optional().describe('Map of image slot/name/nodeId -> absolute image path (e.g. { "hero_image": "/tmp/photo.jpg" })'),
     })).describe('Ordered subset of template layouts to include in the output deck. The array order becomes the output deck order, regardless of the template\'s original order.'),
@@ -481,7 +481,7 @@ server.tool(
 
 // ── render-slide ───────────────────────────────────────────────────────
 server.tool(
-  'figmatk_render_slide',
+  'openfig_render_slide',
   'Render a slide from a .deck file to an image. Without output path, returns inline WebP for visual QA. With output path, saves full PNG. Default is 1920×1080; use width (pixels) or scale (e.g. "50%") to resize.',
   {
     path: z.string().describe('Path to .deck file'),

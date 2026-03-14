@@ -1,4 +1,4 @@
-# FigmaTK CLI Reference
+# OpenFig CLI Reference
 
 The CLI is focused on inspection, override-based editing, and roundtrip validation.
 
@@ -7,7 +7,7 @@ For Claude/MCP workflows such as template authoring and template instantiation, 
 ## `inspect` — Document structure
 
 ```bash
-figmatk inspect file.deck [--depth N] [--type TYPE] [--json]
+openfig inspect file.deck [--depth N] [--type TYPE] [--json]
 ```
 
 Prints the full node hierarchy tree:
@@ -32,7 +32,7 @@ Filter by node type (`--type SLIDE`, `--type INSTANCE`, `--type SYMBOL`) or limi
 ## `list-text` — All content
 
 ```bash
-figmatk list-text file.deck
+openfig list-text file.deck
 ```
 
 Shows every text string and image hash in the deck — both direct node text and symbol override text. Useful for auditing content or extracting copy.
@@ -49,7 +49,7 @@ SLIDE "1" → INSTANCE (1:2001) sym=1:1322
 ## `list-overrides` — Editable fields
 
 ```bash
-figmatk list-overrides file.deck [--symbol "Symbol Name"]
+openfig list-overrides file.deck [--symbol "Symbol Name"]
 ```
 
 For every symbol (component) in the file, lists each node that has an `overrideKey` — these are the fields you can modify via `symbolOverrides`. Shows the key ID, node type, name, and current default value.
@@ -67,7 +67,7 @@ SYMBOL "Image+Text" (1:1205)
 ## `update-text` — Change text
 
 ```bash
-figmatk update-text input.deck -o output.deck \
+openfig update-text input.deck -o output.deck \
   --slide 1:2000 \
   --set "57:48=New Title" \
   --set "57:49=New Subtitle"
@@ -80,7 +80,7 @@ Finds the slide (by node ID or name), locates its instance, and adds or updates 
 ## `insert-image` — Place images
 
 ```bash
-figmatk insert-image input.deck -o output.deck \
+openfig insert-image input.deck -o output.deck \
   --slide 1:2006 \
   --key 75:126 \
   --image screenshot.png \
@@ -98,7 +98,7 @@ Overrides an image placeholder on a slide instance. Automatically:
 ## `clone-slide` — Duplicate with content
 
 ```bash
-figmatk clone-slide input.deck -o output.deck \
+openfig clone-slide input.deck -o output.deck \
   --template 1:1559 \
   --name "New Slide" \
   --set "57:48=Title" \
@@ -113,7 +113,7 @@ Deep-clones a slide + instance pair from a template, assigns fresh GUIDs, applie
 ## `remove-slide` — Delete slides
 
 ```bash
-figmatk remove-slide input.deck -o output.deck \
+openfig remove-slide input.deck -o output.deck \
   --slide 1:1769 \
   --slide 1:1732
 ```
@@ -125,7 +125,7 @@ Marks slides and their child instances as `REMOVED`. Repeat `--slide` for multip
 ## `roundtrip` — Validate the pipeline
 
 ```bash
-figmatk roundtrip input.deck -o output.deck
+openfig roundtrip input.deck -o output.deck
 ```
 
 Decodes and re-encodes with zero changes. If Figma opens the output, your pipeline is sound. Prints node/slide/blob counts.

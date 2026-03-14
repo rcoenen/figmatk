@@ -1,12 +1,12 @@
 # Agent Guide
 
-Project reference for AI agents and developers working on figmatk.
+Project reference for AI agents and developers working on openfig.
 Tool-agnostic — not specific to any assistant or IDE.
 
 ## Project Overview
 
-**figmatk** is a Node.js toolkit for reading, modifying, and rendering Figma
-files natively. Package name: `figmatk` (npm). Use `figmatoolkit` only in prose.
+**openfig** is a Node.js toolkit for reading, modifying, and rendering Figma
+files natively. Package name: `openfig` (npm). Use `openfig` only in prose.
 
 Currently supports `.deck` files (Figma Slides). Future: `.fig` files (Figma
 Design). The binary codec is already format-agnostic — both formats share the
@@ -166,6 +166,6 @@ See `docs/rasterizer/testing.md`.
 | `docs/rasterizer/pipeline.md` | SVG generation: node dispatch, transforms, VECTOR, INSTANCE |
 | `docs/rasterizer/fonts.md` | Font resolution, Google Fonts, Inter v3/v4, TTC |
 | `docs/rasterizer/testing.md` | SSIM testing, reference decks, HTML comparison reports |
-| `docs/figmatk-api-spec.md` | High-level API design (phases 1–5) |
-| `docs/feature-map.md` | python-pptx → figmatk feature mapping |
+| `docs/openfig-api-spec.md` | High-level API design (phases 1–5) |
+| `docs/feature-map.md` | python-pptx → openfig feature mapping |
 | `docs/library.md` | Library usage examples |

@@ -1,12 +1,12 @@
-# figmatk Programmatic API — Specification
+# openfig Programmatic API — Specification
 
 ## Vision
 
 A high-level JS API for reading and writing Figma Slides `.deck` files,
-built on top of figmatk's existing `FigDeck` codec layer.
+built on top of openfig's existing `FigDeck` codec layer.
 Analogous to python-pptx in scope and design philosophy.
 
-See `docs/feature-map.md` for the full python-pptx → figmatk feature mapping
+See `docs/feature-map.md` for the full python-pptx → openfig feature mapping
 that drives this spec. See `docs/format/` for the `.deck` file format specification.
 Reusable template authoring and module-backed template instantiation are documented separately in [mcp.md](mcp.md) and [template-workflows.md](template-workflows.md); this page focuses on the higher-level `Deck` / `Slide` editing API.
 
@@ -37,7 +37,7 @@ Reusable template authoring and module-backed template instantiation are documen
 ## Architecture
 
 ```
-figmatk/
+openfig/
 ├── lib/
 │   ├── fig-deck.mjs        # codec layer (FigDeck)
 │   ├── node-helpers.mjs    # nid, parseId, ov, positionChar, etc.
@@ -68,14 +68,14 @@ and reopened in Figma without corruption.
 
 **Goal:** All ✅ Direct features from the feature map — 1:1 equivalents of
 python-pptx where the format is already understood.
-No format research needed; proven by existing figmatk commands.
+No format research needed; proven by existing openfig commands.
 
 Implemented in `lib/api.mjs` as `Deck`, `Slide`, `Symbol`, `TextNode`, `ImageNode`.
 
 ### 1.1 — Open / Save / Create / Meta ✅ Validated
 
 ```js
-import { Deck } from 'figmatk'
+import { Deck } from 'openfig'
 
 // Open existing
 const deck = await Deck.open('slides.deck')
@@ -440,7 +440,7 @@ Height is calculated proportionally from the SVG viewBox aspect ratio.
 ## Phase 3 — Richer Than pptx ⭐ Future
 
 **Goal:** Features where Figma exceeds python-pptx. No pptx analogue —
-these are figmatk-native capabilities. Each needs its own format investigation.
+these are openfig-native capabilities. Each needs its own format investigation.
 
 These are unscheduled. Each becomes its own mini-spec when prioritised.
 
@@ -473,7 +473,7 @@ From the feature map — these have no Figma Slides equivalent:
 ## API Summary
 
 ```js
-import { Deck } from 'figmatk'
+import { Deck } from 'openfig'
 
 // Create / open / save
 const deck = await Deck.create({ name: 'My Deck' })     // ✅ from scratch

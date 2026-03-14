@@ -4,12 +4,12 @@ description: >
   Create, edit, and inspect Figma Slides .deck files. Use when the user asks to
   create a presentation, build a slide deck, edit slides, update text or images,
   clone or remove slides, or produce a .deck file for Figma Slides.
-  Powered by FigmaTK under the hood.
+  Powered by OpenFig under the hood.
 metadata:
   version: "0.3.11"
 ---
 
-# FigmaTK Skill
+# OpenFig Skill
 
 ## ⚠️ Never open .deck files directly
 
@@ -24,9 +24,9 @@ To let the user view the result: tell them to **open the file in Figma Desktop**
 | Task | Approach |
 |------|----------|
 | Create a new deck from scratch | Use the high-level JS API (`lib/api.mjs`) |
-| Edit text or images in an existing deck | Use MCP tools (`figmatk_update_text`, `figmatk_insert_image`) |
-| Clone, remove, or restructure slides | Use MCP tools (`figmatk_clone_slide`, `figmatk_remove_slide`) |
-| Inspect structure or read content | Use MCP tools (`figmatk_inspect`, `figmatk_list_text`) |
+| Edit text or images in an existing deck | Use MCP tools (`openfig_update_text`, `openfig_insert_image`) |
+| Clone, remove, or restructure slides | Use MCP tools (`openfig_clone_slide`, `openfig_remove_slide`) |
+| Inspect structure or read content | Use MCP tools (`openfig_inspect`, `openfig_list_text`) |
 
 ---
 
@@ -34,13 +34,13 @@ To let the user view the result: tell them to **open the file in Figma Desktop**
 
 Use this when the user wants a new presentation. Write a Node.js script and execute it.
 
-> **Import path:** `figmatk` is an npm package. Import from the installed package:
+> **Import path:** `openfig` is an npm package. Import from the installed package:
 > ```javascript
-> import { Deck } from 'figmatk';
+> import { Deck } from 'openfig';
 > ```
 
 ```javascript
-import { Deck } from 'figmatk';
+import { Deck } from 'openfig';
 
 const deck = await Deck.create('My Presentation');
 
@@ -128,28 +128,28 @@ Use this when the user provides a `.deck` file to modify.
 
 ### Workflow
 
-1. `figmatk_inspect` — understand the deck structure (node IDs, slide count, symbols)
-2. `figmatk_list_text` — read current text and images per slide
-3. `figmatk_list_overrides` — find the override keys for each symbol (what's editable)
-4. `figmatk_update_text` — apply text changes
-5. `figmatk_insert_image` — apply image changes
-6. `figmatk_clone_slide` — duplicate a slide and populate it
-7. `figmatk_remove_slide` — mark unwanted slides as REMOVED
+1. `openfig_inspect` — understand the deck structure (node IDs, slide count, symbols)
+2. `openfig_list_text` — read current text and images per slide
+3. `openfig_list_overrides` — find the override keys for each symbol (what's editable)
+4. `openfig_update_text` — apply text changes
+5. `openfig_insert_image` — apply image changes
+6. `openfig_clone_slide` — duplicate a slide and populate it
+7. `openfig_remove_slide` — mark unwanted slides as REMOVED
 8. Always write to a **new output path** — never overwrite the source
 
 ### MCP tool reference
 
 | Tool | Purpose |
 |------|---------|
-| `figmatk_inspect` | Node hierarchy tree — structure, node IDs, slide count |
-| `figmatk_list_text` | All text strings and image hashes per slide |
-| `figmatk_list_overrides` | Editable override keys per symbol (component) |
-| `figmatk_update_text` | Set text overrides on a slide instance |
-| `figmatk_insert_image` | Set image fill override (handles SHA-1 hashing + thumbnail) |
-| `figmatk_clone_slide` | Deep-clone a slide with new text and images |
-| `figmatk_remove_slide` | Mark slides as REMOVED (never deleted) |
-| `figmatk_roundtrip` | Decode + re-encode for pipeline validation |
-| `figmatk_render_slide` | Render a slide to image (inline WebP or saved PNG) |
+| `openfig_inspect` | Node hierarchy tree — structure, node IDs, slide count |
+| `openfig_list_text` | All text strings and image hashes per slide |
+| `openfig_list_overrides` | Editable override keys per symbol (component) |
+| `openfig_update_text` | Set text overrides on a slide instance |
+| `openfig_insert_image` | Set image fill override (handles SHA-1 hashing + thumbnail) |
+| `openfig_clone_slide` | Deep-clone a slide with new text and images |
+| `openfig_remove_slide` | Mark slides as REMOVED (never deleted) |
+| `openfig_roundtrip` | Decode + re-encode for pipeline validation |
+| `openfig_render_slide` | Render a slide to image (inline WebP or saved PNG) |
 
 ---
 
@@ -161,7 +161,7 @@ After creating or modifying a deck, **always render and visually inspect** the o
 
 1. Render each slide at preview size (returns inline WebP image):
    ```
-   figmatk_render_slide(path: "/tmp/my-deck.deck", slide: 1)
+   openfig_render_slide(path: "/tmp/my-deck.deck", slide: 1)
    ```
 2. Inspect the returned image for:
    - Text overflowing its bounding box or clipped
@@ -171,7 +171,7 @@ After creating or modifying a deck, **always render and visually inspect** the o
 3. If issues are found, fix them and re-render
 4. For full-resolution export:
    ```
-   figmatk_render_slide(path: "/tmp/my-deck.deck", slide: 1, output: "/tmp/slide-1.png")
+   openfig_render_slide(path: "/tmp/my-deck.deck", slide: 1, output: "/tmp/slide-1.png")
    ```
 
 ### Render options
@@ -186,9 +186,9 @@ After creating or modifying a deck, **always render and visually inspect** the o
 ### CLI alternative
 
 ```bash
-figmatk render my-deck.deck -o /tmp/renders/                   # all slides
-figmatk render my-deck.deck -o /tmp/renders/ --slide 3         # single slide
-figmatk render my-deck.deck -o /tmp/renders/ --width 400       # thumbnail size
+openfig render my-deck.deck -o /tmp/renders/                   # all slides
+openfig render my-deck.deck -o /tmp/renders/ --slide 3         # single slide
+openfig render my-deck.deck -o /tmp/renders/ --width 400       # thumbnail size
 ```
 
 **Important:** Always run visual QA on every deck you create or modify. Do not skip this step.
@@ -242,7 +242,7 @@ Every deck must look **intentionally designed**, not AI-generated.
 ## QA
 
 1. Self-check: no placeholder text (`lorem ipsum`, `[title here]`) remains
-2. **Render every slide** using `figmatk_render_slide` and visually inspect for overflows, clipping, alignment, and color issues
+2. **Render every slide** using `openfig_render_slide` and visually inspect for overflows, clipping, alignment, and color issues
 3. Fix any issues found and re-render to confirm
 4. Tell the user to open the `.deck` in Figma Desktop for final review
 5. Offer to fix anything they report

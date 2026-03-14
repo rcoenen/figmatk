@@ -1,6 +1,6 @@
-# FigmaTK Library (Low-Level API)
+# OpenFig Library (Low-Level API)
 
-For the high-level programmatic API (`Deck`, `Slide`, `addText`, `addImage`, etc.) see [figmatk-api-spec.md](figmatk-api-spec.md).
+For the high-level programmatic API (`Deck`, `Slide`, `addText`, `addImage`, etc.) see [openfig-api-spec.md](openfig-api-spec.md).
 
 For reusable-template authoring and instantiation workflows, see [mcp.md](mcp.md) and [template-workflows.md](template-workflows.md). Those workflows are currently driven through the MCP layer and internal helpers, not this low-level `FigDeck` page.
 
@@ -9,16 +9,16 @@ This page covers the low-level `FigDeck` class and helper utilities — useful w
 ## Install
 
 ```bash
-npm install figmatk
+npm install openfig
 ```
 
 ## Basic Usage
 
 ```javascript
-import { FigDeck } from 'figmatk/deck';
-import { ov, nestedOv, removeNode } from 'figmatk/node-helpers';
-import { imageOv } from 'figmatk/image-helpers';
-import { deepClone } from 'figmatk/deep-clone';
+import { FigDeck } from 'openfig/deck';
+import { ov, nestedOv, removeNode } from 'openfig/node-helpers';
+import { imageOv } from 'openfig/image-helpers';
+import { deepClone } from 'openfig/deep-clone';
 
 // Load
 const deck = await FigDeck.fromDeckFile('template.deck');
@@ -64,11 +64,11 @@ await deck.saveDeck('output.deck');
 
 | Module | Export | Description |
 |--------|--------|-------------|
-| `figmatk/node-helpers` | `nid(node)` | Format node ID as `"sessionID:localID"` |
+| `openfig/node-helpers` | `nid(node)` | Format node ID as `"sessionID:localID"` |
 | | `parseId(str)` | Parse `"57:48"` to `{ sessionID, localID }` |
 | | `ov(key, text)` | Build a text override for `symbolOverrides` |
 | | `nestedOv(instKey, textKey, text)` | Text override for nested instances |
 | | `removeNode(node)` | Mark node as REMOVED |
-| `figmatk/image-helpers` | `imageOv(key, hash, thumbHash, w, h)` | Build a complete image fill override |
+| `openfig/image-helpers` | `imageOv(key, hash, thumbHash, w, h)` | Build a complete image fill override |
 | | `hexToHash(hex)` / `hashToHex(arr)` | Convert between hex strings and `Uint8Array(20)` |
-| `figmatk/deep-clone` | `deepClone(obj)` | `Uint8Array`-safe deep clone |
+| `openfig/deep-clone` | `deepClone(obj)` | `Uint8Array`-safe deep clone |

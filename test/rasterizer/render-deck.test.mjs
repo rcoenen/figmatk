@@ -3,7 +3,7 @@
  * Figma reference PNGs using SSIM (Structural Similarity Index).
  *
  * Fixtures:  decks/reference/
- * Report:    /tmp/figmatk-render-report-deck.html
+ * Report:    /tmp/openfig-render-report-deck.html
  */
 
 import { describe, it, expect, afterAll } from 'vitest';
@@ -16,7 +16,7 @@ import { svgToPng } from '../../lib/rasterizer/deck-rasterizer.mjs';
 import { buildReportRow, writeRenderReport, computeSsim } from '../../lib/rasterizer/render-report-lib.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const REPORT_OUT = '/private/tmp/figmatk-render-report-deck.html';
+const REPORT_OUT = '/private/tmp/openfig-render-report-deck.html';
 
 const DECK_PATH   = join(__dirname, '../../decks/reference/oil-machinations.deck');
 const REF_DIR     = join(__dirname, '../../decks/reference/oil-machinations');
@@ -74,7 +74,7 @@ describe('oil-machinations deck rendering', () => {
       const png   = await renderSlide(deck, slide);
       const score = await computeSsim(Buffer.from(png), refPath);
 
-      const outPath = join('/tmp', `figmatk-test-slide-${i}.png`);
+      const outPath = join('/tmp', `openfig-test-slide-${i}.png`);
       writeFileSync(outPath, Buffer.from(png));
       const row = await buildReportRow({ slideNumber: i, renderedPng: Buffer.from(png), refPath, score, notes: slideNotes[i] });
       reportRows.push(row);
@@ -94,7 +94,7 @@ describe('just-fonts deck rendering', () => {
 
     const refPath = join(JUST_FONTS_REF, 'page-1.png');
     const png     = await renderSlide(deck, deck.getSlide(1));
-    const outPath = join('/tmp', 'figmatk-test-just-fonts-1.png');
+    const outPath = join('/tmp', 'openfig-test-just-fonts-1.png');
     writeFileSync(outPath, Buffer.from(png));
 
     if (!existsSync(refPath)) {
@@ -118,7 +118,7 @@ describe('svg-deck rendering (VECTOR nodes)', () => {
 
     const refPath = join(SVG_REF, 'page-1.png');
     const png     = await renderSlide(deck, deck.getSlide(1));
-    const outPath = join('/tmp', 'figmatk-test-svg-deck-1.png');
+    const outPath = join('/tmp', 'openfig-test-svg-deck-1.png');
     writeFileSync(outPath, Buffer.from(png));
 
     if (!existsSync(refPath)) {
@@ -142,7 +142,7 @@ describe('4-text-column deck rendering', () => {
 
     const refPath = join(FOUR_TEXT_COL_REF, 'page-1.png');
     const png     = await renderSlide(deck, deck.getSlide(1));
-    const outPath = join('/tmp', 'figmatk-test-4-text-column-1.png');
+    const outPath = join('/tmp', 'openfig-test-4-text-column-1.png');
     writeFileSync(outPath, Buffer.from(png));
 
     if (!existsSync(refPath)) {
@@ -161,6 +161,6 @@ describe('4-text-column deck rendering', () => {
 
 afterAll(() => {
   if (!reportRows.length) return;
-  writeRenderReport({ outHtml: REPORT_OUT, rows: reportRows, title: 'FigmaTK Deck Render Report' });
+  writeRenderReport({ outHtml: REPORT_OUT, rows: reportRows, title: 'OpenFig Deck Render Report' });
   console.log(`\nReport → ${REPORT_OUT}`);
 });

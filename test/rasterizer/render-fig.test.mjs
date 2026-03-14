@@ -3,7 +3,7 @@
  * and compare against Figma reference PNGs using SSIM.
  *
  * Fixtures:  figs/reference/
- * Report:    /tmp/figmatk-render-report-fig.html
+ * Report:    /tmp/openfig-render-report-fig.html
  */
 
 import { describe, it, expect, afterAll } from 'vitest';
@@ -17,7 +17,7 @@ import { svgToPng } from '../../lib/rasterizer/deck-rasterizer.mjs';
 import { buildReportRow, writeRenderReport, computeSsim } from '../../lib/rasterizer/render-report-lib.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const REPORT_OUT = '/private/tmp/figmatk-render-report-fig.html';
+const REPORT_OUT = '/private/tmp/openfig-render-report-fig.html';
 
 // Universal quality gates — three complementary metrics:
 //   SSIM ≥ 0.90       global perceptual similarity (catches missing/shifted content)
@@ -68,7 +68,7 @@ describe('medium-complex.fig frame rendering', () => {
       const png = await svgToPng(svg, { background: 'rgba(0,0,0,0)' });
       const pngBuf = Buffer.from(png);
       const slug = `${page}-${frame}`.replace(/\s+/g, '_').toLowerCase();
-      const outPath = join('/tmp', `figmatk-test-fig-${slug}.png`);
+      const outPath = join('/tmp', `openfig-test-fig-${slug}.png`);
       writeFileSync(outPath, pngBuf);
 
       const refPath = join(FIG_REF, `${slug}.png`);
@@ -144,6 +144,6 @@ describe('basic-shapes.fig rendering (STAR, POLYGON)', () => {
 
 afterAll(() => {
   if (!reportRows.length) return;
-  writeRenderReport({ outHtml: REPORT_OUT, rows: reportRows, title: 'FigmaTK Design Render Report' });
+  writeRenderReport({ outHtml: REPORT_OUT, rows: reportRows, title: 'OpenFig Design Render Report' });
   console.log(`\nReport → ${REPORT_OUT}`);
 });

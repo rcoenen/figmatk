@@ -1,22 +1,22 @@
 ## Context
 
-figmatk already has the correct core architecture for Claude integration: a local stdio MCP server in `mcp-server.mjs`. The gap is packaging and distribution.
+openfig already has the correct core architecture for Claude integration: a local stdio MCP server in `mcp-server.mjs`. The gap is packaging and distribution.
 
 Today the repo uses:
 - `.claude-plugin/plugin.json`
 - `.claude-plugin/marketplace.json`
 - `.mcp.json`
-- a custom ZIP pack script that stages files into `dist/figmatk-plugin.zip`
+- a custom ZIP pack script that stages files into `dist/openfig-plugin.zip`
 
 That layout worked for local experimentation, but it diverges from Anthropic's currently documented desktop-extension workflow:
 - a `manifest.json` file at the extension root
 - an `.mcpb` bundle built from the extension directory
 - install/update via the Claude Desktop/Cowork extensions UI
 
-At the same time, figmatk is not only a Claude extension. It is also:
+At the same time, openfig is not only a Claude extension. It is also:
 - an npm library
 - a CLI
-- a standalone MCP server binary (`figmatk-mcp`)
+- a standalone MCP server binary (`openfig-mcp`)
 
 The design therefore needs to separate:
 - **runtime/package metadata for npm**
@@ -27,7 +27,7 @@ without duplicating the actual server implementation.
 ## Goals / Non-Goals
 
 - Goals:
-  - Package figmatk for Claude Desktop/Cowork as an official `.mcpb` desktop extension
+  - Package openfig for Claude Desktop/Cowork as an official `.mcpb` desktop extension
   - Keep the npm package and standalone CLI/MCP entry points intact
   - Make `manifest.json` the authoritative Claude extension metadata file
   - Provide a deterministic `pack` flow that stages production dependencies and emits a validated `.mcpb`
@@ -36,7 +36,7 @@ without duplicating the actual server implementation.
 - Non-Goals:
   - Replace the existing MCP server implementation
   - Build or host a remote MCP connector in this change
-  - Remove the ability to run the MCP server manually via `figmatk-mcp` or `.mcp.json`
+  - Remove the ability to run the MCP server manually via `openfig-mcp` or `.mcp.json`
   - Solve signing/notarization beyond leaving a compatible path open for later
 
 ## Decisions
@@ -82,7 +82,7 @@ without duplicating the actual server implementation.
 
 1. Define MCPB desktop-extension distribution as an explicit capability
 2. Add `manifest.json` and map existing extension metadata into it
-3. Update pack tooling to stage and emit `dist/figmatk.mcpb`
+3. Update pack tooling to stage and emit `dist/openfig.mcpb`
 4. Update release tooling to sync versions across npm and MCPB manifests
 5. Update README/docs to describe MCPB install/update and dev-only `.mcp.json`
 6. Keep `.claude-plugin` metadata as the GitHub-backed update-check path while deprecating only the old ZIP artifact

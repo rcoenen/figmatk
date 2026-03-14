@@ -17,9 +17,9 @@ Use this skill when the goal is to build or refine the template itself. For the 
 
 In Claude Cowork, keep template authoring inside the MCP plugin.
 
-- Do not inspect the installed `figmatk` package to discover template features.
+- Do not inspect the installed `openfig` package to discover template features.
 - Do not write direct Node.js scripts for draft creation, annotation, wrapping, or instantiation when MCP tools exist for those steps.
-- Prefer `figmatk_create_template_draft`, `figmatk_annotate_template_layout`, `figmatk_publish_template_draft`, and `figmatk_list_template_layouts`.
+- Prefer `openfig_create_template_draft`, `openfig_annotate_template_layout`, `openfig_publish_template_draft`, and `openfig_list_template_layouts`.
 
 Only fall back to direct library code if the MCP server is unavailable or the required capability is missing from the MCP surface.
 
@@ -88,13 +88,13 @@ Bad:
 
 ### 1. Create or inspect a draft template
 
-- New draft from scratch: `figmatk_create_template_draft`
-- Existing deck/template: `figmatk_list_template_layouts`
-- Structural inspection: `figmatk_inspect`
+- New draft from scratch: `openfig_create_template_draft`
+- Existing deck/template: `openfig_list_template_layouts`
+- Structural inspection: `openfig_inspect`
 
 ### 2. Annotate reusable layouts
 
-Use `figmatk_annotate_template_layout` to:
+Use `openfig_annotate_template_layout` to:
 
 - rename a slide as a layout
 - mark text nodes as editable text slots
@@ -112,13 +112,13 @@ While annotating:
 
 ### 3. Publish-wrap when the template is ready
 
-Use `figmatk_publish_template_draft` to add publish-like `MODULE` wrappers while preserving the slide subtree and internal assets.
+Use `openfig_publish_template_draft` to add publish-like `MODULE` wrappers while preserving the slide subtree and internal assets.
 
 ### 4. Verify the result
 
-- `figmatk_list_template_layouts`
-- `figmatk_list_text`
-- `figmatk_roundtrip` if you want a conservative encode/decode check
+- `openfig_list_template_layouts`
+- `openfig_list_text`
+- `openfig_roundtrip` if you want a conservative encode/decode check
 - open the wrapped template in Figma Desktop when validating real upload behavior
 
 ## Practical Rules
@@ -134,7 +134,7 @@ Use `figmatk_publish_template_draft` to add publish-like `MODULE` wrappers while
 - Reuse one layout when only copy length changes; create a new layout when hierarchy or media structure changes.
 - Separate content slots from chrome. For device mockups, the screen is usually the slot and the hardware frame is usually fixed.
 - If a layout has explicit slot metadata, do not rely on heuristic image placeholders for that layout.
-- After publish-wrapping, re-run `figmatk_list_template_layouts` and confirm the layout names and slot names survived unchanged.
+- After publish-wrapping, re-run `openfig_list_template_layouts` and confirm the layout names and slot names survived unchanged.
 
 ## Example
 

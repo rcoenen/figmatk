@@ -47,7 +47,7 @@ export async function run(args, flags) {
     thumbHash = sha1Hex(tBuf);
     copyToImages(deck, thumbHash, resolve(thumbPath));
   } else {
-    const tmpThumb = `/tmp/figmatk_thumb_${Date.now()}.png`;
+    const tmpThumb = `/tmp/openfig_thumb_${Date.now()}.png`;
     await generateThumbnail(resolve(imagePath), tmpThumb);
     thumbHash = sha1Hex(readFileSync(tmpThumb));
     copyToImages(deck, thumbHash, tmpThumb);
@@ -74,7 +74,7 @@ export async function run(args, flags) {
 
 function copyToImages(deck, hash, srcPath) {
   if (!deck.imagesDir) {
-    deck.imagesDir = `/tmp/figmatk_images_${Date.now()}`;
+    deck.imagesDir = `/tmp/openfig_images_${Date.now()}`;
     mkdirSync(deck.imagesDir, { recursive: true });
   }
   const dest = join(deck.imagesDir, hash);

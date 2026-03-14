@@ -2,7 +2,7 @@
 
 ## Purpose
 
-figmatk is a CLI + programmatic JS library for reading and writing Figma Slides `.deck` files.
+openfig is a CLI + programmatic JS library for reading and writing Figma Slides `.deck` files.
 It reverse-engineers the Figma binary format to enable automation of slide creation, content
 population, and template-based deck generation — analogous to what python-pptx does for PowerPoint.
 
@@ -64,13 +64,13 @@ The `.deck` format is partially reverse-engineered. Key hard-won rules:
 - Images stored in `images/` dir named by 40-char hex SHA-1, no extension
 - Thumbnails are ~320px wide PNGs generated via `sips` (macOS)
 
-See `docs/figmatk-api-spec.md` for the full phased feature plan.
-See `docs/feature-map.md` for the python-pptx → figmatk feature mapping.
+See `docs/openfig-api-spec.md` for the full phased feature plan.
+See `docs/feature-map.md` for the python-pptx → openfig feature mapping.
 See `docs/deck-format.md` for the complete format specification.
 
 ## Important Constraints
 
-- **Package name:** `figmatk` on npm. Never use `figmatoolkit` in code — prose docs only.
+- **Package name:** `openfig` on npm. Never use `figmatoolkit` in code — prose docs only.
 - **macOS dependency:** `sips` used for image dimensions + thumbnail generation. Non-macOS support is future work.
 - **No kiwi regeneration:** The kiwi schema in chunk 0 must always be the original from the source file.
 - **Phase 2 features are unvalidated:** Shape properties, text formatting, shape creation — none of these are confirmed working. Follow the learn/validate loop before implementing.
@@ -78,5 +78,5 @@ See `docs/deck-format.md` for the complete format specification.
 ## External Dependencies
 
 - **Figma Slides** — the target application; all output is validated by uploading to Figma
-- **npm registry** — package published as `figmatk` by user `rcoenen`
-- **GitHub** — `github.com/rcoenen/figmatk`
+- **npm registry** — package published as `openfig` by user `rcoenen`
+- **GitHub** — `github.com/rcoenen/openfig`

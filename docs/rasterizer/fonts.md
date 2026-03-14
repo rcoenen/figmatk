@@ -130,7 +130,7 @@ const pngs = await renderDeck(deck);
 For each font family used in the deck (that isn't already built-in):
 
 ```
-1. Cache hit?     ~/.figmatk/fonts/<family>-<weight>-normal.ttf
+1. Cache hit?     ~/.openfig/fonts/<family>-<weight>-normal.ttf
        ↓ miss
 2. Google Fonts   fetch CSS API → download TTF → patch nameID 1 → cache
        ↓ miss
@@ -210,10 +210,10 @@ runs don't re-scan.
 
 ### Step 5: Cache
 
-Resolved fonts are cached at `~/.figmatk/fonts/`:
+Resolved fonts are cached at `~/.openfig/fonts/`:
 
 ```
-~/.figmatk/fonts/
+~/.openfig/fonts/
   roboto-400-normal.ttf       ← patched TTF from Google Fonts
   roboto-700-normal.ttf
   helvetica-400-normal.ttf    ← TTC sentinel (points to system file)
@@ -229,7 +229,7 @@ emits a warning and the font is added to the `failed` list. Text using that font
 renders in Inter (resvg's `defaultFontFamily`) — wrong font, but no crash.
 
 ```
-[figmatk] Font "MyCustomFont" missing weights [400, 700] — not on Google Fonts,
+[openfig] Font "MyCustomFont" missing weights [400, 700] — not on Google Fonts,
 not found in system fonts. Text will render in Inter as fallback.
 Use registerFont() to supply this font manually.
 ```

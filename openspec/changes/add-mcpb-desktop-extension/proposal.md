@@ -2,7 +2,7 @@
 
 ## Why
 
-figmatk currently ships Claude-focused packaging through `.claude-plugin/` metadata, a local ZIP pack script, and documentation that assumes an older Claude plugin installation flow. Recent Anthropic documentation positions Claude Desktop/Cowork extensions as MCP-based desktop bundles packaged as `.mcpb` files with `manifest.json`, but the repo-backed plugin metadata still matters for Claude Cowork's GitHub update-check behavior.
+openfig currently ships Claude-focused packaging through `.claude-plugin/` metadata, a local ZIP pack script, and documentation that assumes an older Claude plugin installation flow. Recent Anthropic documentation positions Claude Desktop/Cowork extensions as MCP-based desktop bundles packaged as `.mcpb` files with `manifest.json`, but the repo-backed plugin metadata still matters for Claude Cowork's GitHub update-check behavior.
 
 The project should align its Claude distribution path with the documented MCPB flow while preserving both the existing npm package for the CLI/library/MCP binary and the repo-backed Claude metadata that powers GitHub update checks.
 

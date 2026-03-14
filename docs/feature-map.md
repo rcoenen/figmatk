@@ -1,6 +1,6 @@
-# figmatk API — Feature Map
+# openfig API — Feature Map
 
-Maps every python-pptx feature to its figmatk equivalent.
+Maps every python-pptx feature to its openfig equivalent.
 Used to drive spec and phase planning.
 
 ## Categories
@@ -16,7 +16,7 @@ Used to drive spec and phase planning.
 
 ## Presentation
 
-| python-pptx | Category | figmatk API | Notes |
+| python-pptx | Category | openfig API | Notes |
 |-------------|----------|-------------|-------|
 | `Presentation('file.pptx')` | ✅ Direct | `Deck.open('file.deck')` | Phase 1 — done |
 | `Presentation()` new blank | ✅ Direct | `Deck.create()` | Done — creates from bundled blank template |
@@ -28,7 +28,7 @@ Used to drive spec and phase planning.
 
 ## Slides
 
-| python-pptx | Category | figmatk API | Notes |
+| python-pptx | Category | openfig API | Notes |
 |-------------|----------|-------------|-------|
 | `slides.add_slide(layout)` | ✅ Direct | `deck.addSlide(symbol)` | Phase 4 — done |
 | `slides[0]` | ✅ Direct | `deck.slides[0]` | Phase 1 — done |
@@ -42,7 +42,7 @@ Used to drive spec and phase planning.
 
 ## Slide Layouts & Masters
 
-| python-pptx | Category | figmatk API | Notes |
+| python-pptx | Category | openfig API | Notes |
 |-------------|----------|-------------|-------|
 | `prs.slide_layouts` | ⭐ Richer | `deck.symbols` | Figma SYMBOLs are richer than pptx layouts — full component model |
 | `slide_layout.placeholders` | ⭐ Richer | `symbol.textSlots`, `symbol.imageSlots` | Phase 1 — done |
@@ -53,7 +53,7 @@ Used to drive spec and phase planning.
 
 ## Shapes — General
 
-| python-pptx | Category | figmatk API | Notes |
+| python-pptx | Category | openfig API | Notes |
 |-------------|----------|-------------|-------|
 | `shape.left`, `top`, `width`, `height` | ✅ Direct | `shape.x`, `shape.y`, `shape.width`, `shape.height` | Validated — read/write via transform + size |
 | `shape.rotation` | ✅ Direct | `shape.rotation` | Validated — read/write via transform matrix |
@@ -73,7 +73,7 @@ Used to drive spec and phase planning.
 
 ## Placeholders
 
-| python-pptx | Category | figmatk API | Notes |
+| python-pptx | Category | openfig API | Notes |
 |-------------|----------|-------------|-------|
 | Title placeholder | ⭐ Richer | `slide.setText('Title', value)` | Symbol override by node name — Phase 2 done |
 | Body placeholder | ⭐ Richer | `slide.setText('Body', value)` | Phase 2 done |
@@ -86,7 +86,7 @@ Used to drive spec and phase planning.
 
 ## Text
 
-| python-pptx | Category | figmatk API | Notes |
+| python-pptx | Category | openfig API | Notes |
 |-------------|----------|-------------|-------|
 | `text_frame.text` read | ✅ Direct | `textNode.characters` | Phase 1 — done |
 | Set text content | ✅ Direct | `slide.setText(name, value)` | Phase 2 — done |
@@ -110,7 +110,7 @@ Used to drive spec and phase planning.
 
 ## Fill
 
-| python-pptx | Category | figmatk API | Notes |
+| python-pptx | Category | openfig API | Notes |
 |-------------|----------|-------------|-------|
 | Solid fill | ✅ Direct | `shape.setFill({ r, g, b })` | Validated — fillPaints on nodes |
 | Gradient fill | 🔬 Unknown | `shape.fill.gradient(stops)` | Unvalidated |
@@ -123,7 +123,7 @@ Used to drive spec and phase planning.
 
 ## Line / Border
 
-| python-pptx | Category | figmatk API | Notes |
+| python-pptx | Category | openfig API | Notes |
 |-------------|----------|-------------|-------|
 | Line color | ✅ Direct | `shape.setStroke({ r, g, b })` | Validated — strokePaints on nodes |
 | Line width | ✅ Direct | `shape.setStroke(color, { weight: 8 })` | Validated |
@@ -134,7 +134,7 @@ Used to drive spec and phase planning.
 
 ## Charts
 
-| python-pptx | Category | figmatk API | Notes |
+| python-pptx | Category | openfig API | Notes |
 |-------------|----------|-------------|-------|
 | All chart types | ❌ Skip | — | Figma Slides has no native chart nodes |
 
@@ -142,7 +142,7 @@ Used to drive spec and phase planning.
 
 ## Tables
 
-| python-pptx | Category | figmatk API | Notes |
+| python-pptx | Category | openfig API | Notes |
 |-------------|----------|-------------|-------|
 | `add_table(rows, cols, ...)` | ✅ Direct | `slide.addTable(x, y, data, opts)` | Validated — TABLE node with nodeGenerationData overrides |
 | Cell text | ✅ Direct | via `data[][]` in addTable | Validated — per-cell text at guidPath 40000000:1 > row > col |
@@ -154,7 +154,7 @@ Used to drive spec and phase planning.
 
 ## Images
 
-| python-pptx | Category | figmatk API | Notes |
+| python-pptx | Category | openfig API | Notes |
 |-------------|----------|-------------|-------|
 | `add_picture(path, l, t, w, h)` | ✅ Direct | `slide.addImage(x, y, w, h, path)` | Validated — freestanding ROUNDED_RECTANGLE with IMAGE fill |
 | `insert_picture` into placeholder | ✅ Direct | `slide.setImage(name, path)` | Phase 3 — done |
@@ -165,9 +165,9 @@ Used to drive spec and phase planning.
 
 ## Figma-Only (no pptx equivalent)
 
-These have no python-pptx counterpart but are natural targets for figmatk.
+These have no python-pptx counterpart but are natural targets for openfig.
 
-| Feature | figmatk API | Phase | Notes |
+| Feature | openfig API | Phase | Notes |
 |---------|-------------|-------|-------|
 | Component variants (`COMPONENT_SET`) | `deck.componentSets` | Future | Multiple layout variants per template |
 | Design variables / tokens | `deck.variables` | Future | `VARIABLE_SET`, `VARIABLE` nodes |
@@ -187,6 +187,6 @@ These have no python-pptx counterpart but are natural targets for figmatk.
 | 🔬 Unknown — needs format validation | ~12 |
 | ❌ Skip | ~5 |
 
-Most python-pptx features now have validated figmatk equivalents. The remaining
+Most python-pptx features now have validated openfig equivalents. The remaining
 🔬 items are mostly advanced formatting (gradients, dash styles, paragraph spacing,
 cell merge, groups, freeform shapes).

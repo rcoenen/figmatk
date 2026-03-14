@@ -28,14 +28,14 @@ FigDeck  →  slideToSvg()  →  SVG string  →  svgToPng()  →  PNG bytes
 
 ## Pixel Parity
 
-To the human eye, FigmaTK renders look identical to Figma's native exports. You
+To the human eye, OpenFig renders look identical to Figma's native exports. You
 would not be able to spot the difference without advanced diff tooling — the
 differences live entirely in subpixel territory, at the edges of shapes and
 characters where anti-aliasing blends foreground into background.
 
-Bit-for-bit pixel parity is not achievable because Figma and FigmaTK use
+Bit-for-bit pixel parity is not achievable because Figma and OpenFig use
 different rendering engines under the hood. Figma renders via Skia (Google's 2D
-engine); FigmaTK renders via resvg (Rust, built on tiny-skia). Even given
+engine); OpenFig renders via resvg (Rust, built on tiny-skia). Even given
 identical geometry and identical fonts, the two engines make different subpixel
 coverage decisions at every anti-aliased edge. This is inherent to having two
 independent rasterizers — the same reason two browsers never render the same
@@ -48,8 +48,8 @@ remaining sub-1% delta is rasterizer noise that no human can see.
 ## Quick Start
 
 ```javascript
-import { FigDeck } from 'figmatoolkit/lib/fig-deck.mjs';
-import { renderDeck, registerFont } from 'figmatoolkit/lib/rasterizer/deck-rasterizer.mjs';
+import { FigDeck } from 'openfig/lib/fig-deck.mjs';
+import { renderDeck, registerFont } from 'openfig/lib/rasterizer/deck-rasterizer.mjs';
 
 const deck = await FigDeck.fromDeckFile('slides.deck');
 

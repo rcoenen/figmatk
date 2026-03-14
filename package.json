@@ -1,11 +1,11 @@
 {
-  "name": "figmatk",
+  "name": "openfig",
   "version": "0.3.11",
-  "description": "Figma Toolkit — Swiss-army knife CLI for Figma .deck and .fig files",
+  "description": "OpenFig — Open-source tools for parsing and rendering Figma design files",
   "type": "module",
   "bin": {
-    "figmatk": "cli.mjs",
-    "figmatk-mcp": "mcp-server.mjs"
+    "openfig": "cli.mjs",
+    "openfig-mcp": "mcp-server.mjs"
   },
   "exports": {
     ".": "./lib/slides/api.mjs",
@@ -39,11 +39,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rcoenen/figmatk.git"
+    "url": "git+https://github.com/rcoenen/openfig.git"
   },
-  "homepage": "https://github.com/rcoenen/figmatk",
+  "homepage": "https://github.com/rcoenen/openfig",
   "bugs": {
-    "url": "https://github.com/rcoenen/figmatk/issues"
+    "url": "https://github.com/rcoenen/openfig/issues"
   },
   "author": "rcoenen",
   "dependencies": {

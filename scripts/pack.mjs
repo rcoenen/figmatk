@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * figmatk pack script
+ * OpenFig pack script
  * Creates a local MCPB extension bundle for Claude Desktop/Cowork.
  * Usage: node scripts/pack.mjs
- * Output: dist/figmatk.mcpb
+ * Output: dist/openfig.mcpb
  */
 import { execFileSync } from 'child_process';
 import { existsSync, mkdirSync, rmSync, cpSync, statSync } from 'fs';
@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const tmp = join(root, '.pack-tmp');
 const distDir = join(root, 'dist');
-const outBundle = join(distDir, 'figmatk.mcpb');
+const outBundle = join(distDir, 'openfig.mcpb');
 
 function bin(name) {
   return process.platform === 'win32' ? `${name}.cmd` : name;
@@ -66,5 +66,5 @@ run('npx', ['--no-install', 'mcpb', 'pack', tmp, outBundle]);
 rmSync(tmp, { recursive: true });
 
 const size = Math.round(existsSync(outBundle) ? statSync(outBundle).size / 1024 : 0);
-console.log(`\n✅ dist/figmatk.mcpb (${size} KB)`);
+console.log(`\n✅ dist/openfig.mcpb (${size} KB)`);
 console.log('   Install via: Claude Desktop/Cowork → Settings → Extensions\n');

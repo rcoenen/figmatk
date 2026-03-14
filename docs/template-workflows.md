@@ -2,7 +2,7 @@
 
 This page documents the reusable-template workflow implemented in the MCP server and the internal `lib/template-deck.mjs` helpers.
 
-FigmaTK supports two related template states and one downstream instantiation flow.
+OpenFig supports two related template states and one downstream instantiation flow.
 
 ## States
 
@@ -23,7 +23,7 @@ FigmaTK supports two related template states and one downstream instantiation fl
 ### Instantiated deck
 
 - In the current observed Figma flow, instantiation preserves the published module-backed structure
-- FigmaTK follows that model and clones `MODULE -> SLIDE -> subtree` layouts directly
+- OpenFig follows that model and clones `MODULE -> SLIDE -> subtree` layouts directly
 
 ## Naming Conventions
 
@@ -42,15 +42,15 @@ Examples:
 - `slot:image:hero_image`
 - `fixed:image:brand_texture`
 
-If a layout contains any explicit slot metadata, FigmaTK will only promote explicitly marked image slots as editable. Unmarked image fills stay decorative by default.
+If a layout contains any explicit slot metadata, OpenFig will only promote explicitly marked image slots as editable. Unmarked image fills stay decorative by default.
 
 ## Recommended MCP Flow
 
 ### Author a draft template
 
-1. `figmatk_create_template_draft`
-2. `figmatk_inspect` or `figmatk_list_template_layouts`
-3. `figmatk_annotate_template_layout`
+1. `openfig_create_template_draft`
+2. `openfig_inspect` or `openfig_list_template_layouts`
+3. `openfig_annotate_template_layout`
 4. Repeat until the draft layout names and slots are stable
 
 Example annotation payload:
@@ -76,26 +76,26 @@ Example annotation payload:
 
 ### Publish-wrap the draft
 
-1. `figmatk_publish_template_draft`
-2. `figmatk_list_template_layouts`
+1. `openfig_publish_template_draft`
+2. `openfig_list_template_layouts`
 3. Confirm the wrapped layout catalog still exposes the same slot names
 
 ### Instantiate a new deck
 
-1. `figmatk_list_template_layouts`
+1. `openfig_list_template_layouts`
 2. Build a layout inventory from that catalog
 3. Choose the subset of layouts you actually want to use
 4. Order those chosen layouts to match the target presentation
-5. `figmatk_create_from_template`
+5. `openfig_create_from_template`
 
 Important:
 
 - a template is a layout library, not a fixed ordered form
 - you do not need to use every layout
 - you may reuse the same layout multiple times
-- the output order is defined by the `slides` array you pass to `figmatk_create_from_template`
+- the output order is defined by the `slides` array you pass to `openfig_create_from_template`
 
-`figmatk_create_from_template` accepts:
+`openfig_create_from_template` accepts:
 
 - `text`: map of slot name, node ID, or fallback node name to string value
 - `images`: map of slot name, node ID, or fallback node name to absolute image path
@@ -144,7 +144,7 @@ Template discovery scans every main-canvas `SLIDE_ROW`. It does not limit itself
 
 ## Special Nodes
 
-FigmaTK preserves unsupported-but-known nodes during cloning and wrapping, including:
+OpenFig preserves unsupported-but-known nodes during cloning and wrapping, including:
 
 - device mockups
 - vector masks

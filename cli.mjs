@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * FigmaTK — Swiss-army knife for Figma .deck / .fig files.
+ * OpenFig — Open-source tools for Figma .deck / .fig files.
  *
- * Usage: figmatk <command> [args...]
+ * Usage: openfig <command> [args...]
  *
  * Commands:
  *   inspect        Show document structure (node hierarchy tree)
@@ -16,7 +16,7 @@
  *
  * Disclaimer:
  *   Figma is a trademark of Figma, Inc.
- *   FigmaTK is an independent open-source project and is not affiliated with,
+ *   OpenFig is an independent open-source project and is not affiliated with,
  *   endorsed by, or sponsored by Figma, Inc.
  */
 
@@ -36,8 +36,8 @@ const arg2 = process.argv[2];
 let command, rawArgs;
 
 if (!arg2 || arg2 === '--help' || arg2 === '-h') {
-  console.log(`FigmaTK — Swiss-army knife for Figma .deck / .fig files\n`);
-  console.log('Usage: figmatk <command> [args...]\n');
+  console.log(`OpenFig — Open-source tools for Figma .deck / .fig files\n`);
+  console.log('Usage: openfig <command> [args...]\n');
   console.log('Commands:');
   console.log('  export         Export slides as images (PNG/JPG/WEBP)');
   console.log('  inspect        Show document structure (node hierarchy tree)');

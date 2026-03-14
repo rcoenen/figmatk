@@ -170,4 +170,4 @@ Converting nodes to images. SVG is used as an intermediate format. See [rasteriz
 
 Figma is a trademark of Figma, Inc.
 
-FigmaTK is an independent open-source project and is not affiliated with, endorsed by, or sponsored by Figma, Inc.
+OpenFig is an independent open-source project and is not affiliated with, endorsed by, or sponsored by Figma, Inc.

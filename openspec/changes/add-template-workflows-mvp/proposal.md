@@ -2,7 +2,7 @@
 
 ## Why
 
-figmatk currently supports template instantiation only in a narrow sense: it can inspect and clone existing `.deck` templates, but it does not provide a first-class workflow for authoring reusable templates. Recent inspection of Figma-generated files shows that draft templates, published templates, and instantiated decks are closely related but not identical.
+openfig currently supports template instantiation only in a narrow sense: it can inspect and clone existing `.deck` templates, but it does not provide a first-class workflow for authoring reusable templates. Recent inspection of Figma-generated files shows that draft templates, published templates, and instantiated decks are closely related but not identical.
 
 The toolkit needs an explicit MVP for template workflows so Claude can:
 - author draft templates from scratch
